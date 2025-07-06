@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Écho Scolaire - Prototype Revu</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #007AFF;
+            --secondary-color: #f2f2f7;
+            --text-color: #1c1c1e;
+            --light-text-color: #fff;
+            --border-color: #c6c6c8;
+            --hover-color: #005ecb;
+            --error-color: #FF3B30;
+            --success-color: #34C759;
+            --warning-color: #FF9500;
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --box-shadow-light: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            padding: 15px;
+            box-sizing: border-box;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 100%;
+            max-width: 600px;
+            margin-top: 15px;
+            transition: max-width 0.3s ease-in-out;
+        }
+        .dashboard-container {
+             max-width: 1200px;
+             padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+         header .title-lang {
+            text-align: left;
+            flex-grow: 1;
+        }
+        header h1 {
+            color: var(--primary-color);
+            margin: 0 0 5px 0;
+            font-size: 2em;
+            font-weight: 600;
+        }
+        .language-selector { font-size: 0.85em; }
+        .language-selector label { margin-right: 5px; color: #666; }
+        .language-selector select {
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            background-color: #fff;
+            font-size: 0.9em;
+        }
+        #admin-access-button {
+            padding: 9px 16px;
+            font-size: 0.9em;
+            margin-left: 15px;
+            background-color: #e5e5ea;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        #admin-access-button:hover { background-color: #dcdce0; }
+
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.35s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 1.5em;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+         h3 {
+            color: #333; font-size: 1.25em; margin-top: 25px;
+            margin-bottom: 18px; font-weight: 500;
+        }
+         h4 {
+            color: var(--text-color); font-size: 1.05em; margin-top: 22px;
+            margin-bottom: 12px; font-weight: 500;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block; margin-bottom: 8px; font-weight: 500;
+            color: #555; font-size: 0.95em;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="password"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%; padding: 14px; border: 1px solid var(--border-color);
+            border-radius: var(--border-radius); box-sizing: border-box;
+            font-size: 1em; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background-color: #f9f9f9;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+            outline: none;
+            background-color: #fff;
+        }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-group input[type="radio"], .form-group input[type="checkbox"] {
+            margin-right: 10px; vertical-align: middle;
+            accent-color: var(--primary-color);
+            width: 18px; height: 18px;
+        }
+        .radio-group label, .choice-group label, #kpi-selection-admin label, #training-option-management label {
+            font-weight: normal; margin-right: 15px;
+            color: var(--text-color);
+        }
+        #kpi-selection-admin label { margin-bottom: 5px; }
+        .radio-group div, .choice-group div { margin-bottom: 10px; display:flex; align-items:center;}
+
+        button {
+            background-color: var(--primary-color); color: var(--light-text-color);
+            padding: 14px 24px; border: none; border-radius: var(--border-radius);
+            cursor: pointer; font-size: 1em; font-weight: 500;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            display: inline-block; margin-right: 10px; margin-top:10px;
+            text-transform: none; 
+            letter-spacing: 0.2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button:hover { background-color: var(--hover-color); transform: translateY(-1px); box-shadow: 0 3px 6px rgba(0,0,0,0.12); }
+        button:active { transform: translateY(0px); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+        button.secondary { background-color: #6c757d; }
+        button.secondary:hover { background-color: #5a6268; }
+        button.tiny-btn {
+            padding: 6px 12px; font-size: 0.8em; margin-left: 8px;
+            text-transform: none; letter-spacing: normal; box-shadow: none;
+        }
+        button.tiny-btn.error { background-color: var(--error-color); }
+        button.tiny-btn.error:hover { background-color: #e03024; }
+
+        .button-group { display: flex; gap: 12px; justify-content: center; margin-top: 25px; }
+        .error-message { color: var(--error-color); font-size: 0.9em; margin-top: 10px; text-align:center; }
+
+        .thank-you-message { text-align: center; padding: 40px 15px; font-size: 1.15em; }
+        .thank-you-message svg { width: 60px; height: 60px; color: var(--success-color); margin-bottom: 18px; }
+
+        .rating-visual { display: flex; justify-content: space-around; margin-bottom: 10px; padding: 5px 0; }
+        .rating-visual span {
+            font-size: 2em; cursor: pointer; margin: 0 5px; opacity: 0.3;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .rating-visual span.selected, .rating-visual span:hover { opacity: 1; transform: scale(1.2); }
+
+        .dashboard-filters {
+            display: flex; flex-wrap: wrap; gap: 18px;
+            margin-bottom: 25px; padding: 18px;
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow-light);
+        }
+        .dashboard-filters .form-group { flex: 1 1 200px; margin-bottom: 0; }
+
+        .kpi-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 18px; margin-bottom: 25px; }
+        .kpi-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--hover-color) 100%);
+            color: var(--light-text-color);
+            padding: 20px; border-radius: var(--border-radius);
+            text-align: center; box-shadow: 0 3px 8px rgba(0, 122, 255, 0.2);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+         .kpi-card::before {
+            content: ''; position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+            opacity: 0; transition: opacity 0.5s;
+        }
+        .kpi-card:hover::before { opacity: 1; }
+        .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 6px 15px rgba(0, 122, 255, 0.3); }
+        .kpi-card h4 {
+            margin: 0 0 8px 0; font-size: 0.9em;
+            font-weight: 500; color: rgba(255,255,255,0.85);
+            text-transform: uppercase; letter-spacing: 0.8px;
+        }
+        .kpi-card .value { font-size: 2em; font-weight: 700; }
+
+        .charts-section {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+            gap: 22px; margin-bottom: 25px;
+        }
+        .chart-container {
+            background-color: #fff; 
+            padding: 20px; 
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow); 
+            min-height: 380px; 
+            display: flex; 
+            flex-direction: column;
+            transition: box-shadow 0.3s ease;
+            position: relative; 
+        }
+        .chart-container canvas {
+            flex-grow: 1; 
+            max-height: 300px; 
+        }
+        .chart-container:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+        .chart-container h3 {
+            margin-top: 0; 
+            margin-bottom: 15px; 
+            text-align: center; 
+            font-size: 1.05em; 
+            color: var(--primary-color);
+            font-weight: 500;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color); 
+        }
+        .chart-container .no-data {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center; 
+            padding: 20px; 
+            color: #888; 
+            font-style: italic; 
+            font-size: 0.95em;
+            width: 80%; 
+        }
+
+        .qualitative-section {
+            display: grid; grid-template-columns: 1fr;
+            gap: 22px; margin-bottom: 25px;
+        }
+        @media (min-width: 992px) {
+            .qualitative-section { grid-template-columns: 1fr 1.5fr; }
+        }
+        .word-cloud-container, .comments-container {
+            background-color: #fff; padding: 20px; border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow); max-height: 450px; overflow-y: auto;
+        }
+        .word-cloud-container h3, .comments-container h3 {
+            font-size: 1.1em; color: var(--primary-color); font-weight: 500;
+        }
+        .word-cloud-container ul { list-style: none; padding: 0; text-align: center; }
+        .word-cloud-container li {
+            display: inline-block; margin: 4px 7px; padding: 5px 10px;
+            background-color: #eef0f2;
+            border-radius: 15px;
+            font-size: 0.9em;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            cursor: default;
+        }
+        .word-cloud-container li:hover { background-color: var(--primary-color); color: var(--light-text-color); }
+        .comment-item {
+            border-bottom: 1px solid var(--border-color); padding: 12px 5px; font-size: 0.9em;
+            line-height: 1.5; color: #444;
+        }
+        .comment-item:last-child { border-bottom: none; }
+        .no-data { text-align: center; padding: 30px; color: #888; font-style: italic; font-size: 0.95em; }
+
+        .admin-tabs {
+            display: flex; margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color); 
+            flex-wrap: nowrap; 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+            padding-bottom: 2px; 
+        }
+        .admin-tab-button {
+            padding: 14px 18px;
+            cursor: pointer; border: none; background-color: transparent;
+            font-size: 0.95em;
+            color: #555;
+            border-bottom: 3px solid transparent; margin-bottom: -1px; 
+            transition: color 0.2s ease, border-bottom-color 0.2s ease;
+            font-weight: 500;
+            white-space: nowrap; 
+        }
+        .admin-tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        .admin-tab-content { display: none; padding-top: 20px; }
+        .admin-tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+        .data-list { list-style: none; padding-left: 0; }
+        .data-list li {
+            margin-bottom: 10px; padding: 14px 18px; background-color: #fdfdfd;
+            border: 1px solid #eef0f2; border-radius: var(--border-radius);
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: var(--box-shadow-light);
+        }
+        .data-list li .item-text { flex-grow: 1; font-size: 0.9em; }
+        .data-list li .item-details { font-style: italic; color: #777; font-size: 0.8em; margin: 0 10px; }
+
+        #kpi-selection-admin .kpi-choice, #training-option-management .form-group { margin-bottom: 12px; display: flex; align-items: center; }
+        #kpi-selection-admin .kpi-choice input[type="checkbox"], #training-option-management input[type="checkbox"] { margin-right: 12px; }
+        #kpi-selection-admin .kpi-choice label, #training-option-management label { font-weight: normal; color: var(--text-color); }
+
+        .subject-list-container { margin-top: 18px; padding-left: 22px; }
+        .subject-list-container ul { list-style-type: disc; }
+
+        @media (max-width: 768px) {
+            .charts-section { grid-template-columns: 1fr; }
+            .dashboard-filters { flex-direction: column; gap: 15px; }
+            .kpi-cards { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+            .container { padding: 20px; }
+            header h1 { font-size: 1.8em; }
+            h2 { font-size: 1.35em; }
+            .chart-container { min-height: 320px; } 
+            .chart-container canvas { max-height: 260px; }
+        }
+        @media (max-width: 600px) {
+            body { padding: 10px; padding-top: env(safe-area-inset-top); }
+            .container, .dashboard-container { margin: 10px auto; padding: 15px; max-width: 95%; }
+            header {
+                flex-direction: column; align-items: stretch; gap: 12px;
+            }
+            header .title-lang { text-align: center; }
+            #admin-access-button { margin-top: 5px; margin-left: 0; width: 100%; }
+
+            header h1 { font-size: 1.7em; }
+            h2 { font-size: 1.25em; }
+            .button-group { flex-direction: column; gap: 10px; }
+            button { width: 100%; margin-right: 0; margin-bottom: 10px; }
+            button:last-child { margin-bottom: 0; }
+            .admin-tabs { justify-content: flex-start; }
+            .rating-visual span { font-size: 1.8em; }
+             .chart-container { min-height: 300px; } 
+             .chart-container canvas { max-height: 240px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-content-wrapper" class="container"> 
+        <header>
+            <div class="title-lang">
+                <h1 data-translate="app_title">Écho Scolaire</h1>
+                <div class="language-selector">
+                    <label for="language" data-translate="select_language_label">Langue :</label>
+                    <select id="language">
+                        <option value="fr">Français</option>
+                        <option value="en">English</option>
+                        <option value="ar">العربية</option>
+                    </select>
+                </div>
+            </div>
+            <button id="admin-access-button" data-translate="admin_button">Vue Admin</button>
+        </header>
+
+        <main id="app-container">
+            <section id="login-screen" class="screen">
+                <h2 data-translate="login_title">Accès au Questionnaire</h2>
+                <div class="form-group">
+                    <label for="access-code" data-translate="access_code_label">Entrez votre code d'accès :</label>
+                    <input type="text" id="access-code" name="access-code" autocomplete="off">
+                    <p id="login-error" class="error-message" style="display:none;" data-translate="login_error_message">Code d'accès invalide.</p>
+                </div>
+                <button id="submit-access-code" data-translate="login_button">Continuer</button>
+            </section>
+
+            <section id="role-selection-screen" class="screen">
+                <h2 data-translate="role_selection_title">Qui êtes-vous ?</h2>
+                <p data-translate="role_selection_prompt">Veuillez sélectionner votre rôle pour accéder au questionnaire approprié.</p>
+                <div class="button-group">
+                    <button id="select-student" data-translate="role_student">Je suis Élève</button>
+                    <button id="select-parent" data-translate="role_parent">Je suis Parent</button>
+                </div>
+            </section>
+
+            <section id="student-form-screen" class="screen">
+                <h2 data-translate="student_form_title">Questionnaire pour les Élèves</h2>
+                <form id="student-feedback-form">
+                    <div class="form-group">
+                        <label for="student-level" data-translate="student_level_label">Quel est ton niveau scolaire ?</label>
+                        <select id="student-level" name="student_level" required>
+                            <option value="" data-translate="select_option">-- Choisir --</option>
+                            <option value="Primaire CP-CE2" data-translate="level_primary_early">Primaire (CP-CE2)</option>
+                            <option value="Primaire CM1-CM2" data-translate="level_primary_late">Primaire (CM1-CM2)</option>
+                            <option value="College 6e-5e" data-translate="level_college_early">Collège (6ème-5ème)</option>
+                            <option value="College 4e-3e" data-translate="level_college_late">Collège (4ème-3ème)</option>
+                            <option value="Lycee" data-translate="level_lycee">Lycée</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="student-subject" data-translate="student_subject_label">Pour quelle matière souhaites-tu donner ton avis ?</label>
+                        <select id="student-subject" name="student_subject" required>
+                            <option value="" data-translate="select_option">-- Choisir --</option>
+                            <option value="General" data-translate="subject_general">Général (tous les enseignants)</option>
+                            <option value="Mathematiques" data-translate="subject_math">Mathématiques</option>
+                            <option value="Francais" data-translate="subject_french">Français</option>
+                            <option value="HistoireGeo" data-translate="subject_histgeo">Histoire-Géographie</option>
+                            <option value="Sciences" data-translate="subject_science">Sciences (SVT, Physique-Chimie)</option>
+                            <option value="Langues" data-translate="subject_languages">Langues Vivantes</option>
+                            <option value="EPS" data-translate="subject_sport">EPS</option>
+                            <option value="Arts" data-translate="subject_arts">Arts</option>
+                            <option value="Autre" data-translate="subject_other">Autre</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="q_student_clarity">1. L'enseignant explique-t-il clairement les leçons et les consignes ?</label>
+                        <div class="rating-visual" id="q_student_clarity_rating">
+                            <span data-value="1">😞</span><span data-value="2">😕</span><span data-value="3">😐</span><span data-value="4">🙂</span><span data-value="5">😃</span>
+                        </div>
+                        <input type="hidden" name="q_student_clarity" id="q_student_clarity_value" required>
+                         <select name="q_student_clarity_select_fallback" class="js-hide" style="display:none;" required>
+                            <option value="" data-translate="select_option">-- Choisir --</option>
+                            <option value="1" data-translate="rating_1_text">Pas du tout clairement</option>
+                            <option value="2" data-translate="rating_2_text">Un peu clairement</option>
+                            <option value="3" data-translate="rating_3_text">Assez clairement</option>
+                            <option value="4" data-translate="rating_4_text">Clairement</option>
+                            <option value="5" data-translate="rating_5_text">Très clairement</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="q_student_encouragement">2. Te sens-tu à l'aise et encouragé(e) pour poser des questions en classe ?</label>
+                        <div class="radio-group">
+                            <div><input type="radio" name="q_student_encouragement" value="yes" id="enc_yes" required><label for="enc_yes" data-translate="yes">Oui, toujours</label></div>
+                            <div><input type="radio" name="q_student_encouragement" value="sometimes" id="enc_sometimes"><label for="enc_sometimes" data-translate="sometimes">Oui, parfois</label></div>
+                            <div><input type="radio" name="q_student_encouragement" value="no" id="enc_no"><label for="enc_no" data-translate="no">Non, rarement ou jamais</label></div>
+                        </div>
+                    </div>
+                     <div class="form-group">
+                        <label data-translate="q_student_atmosphere">3. Comment décrirais-tu l'ambiance générale de travail dans cette classe ?</label>
+                        <select name="q_student_atmosphere" required>
+                            <option value="" data-translate="select_option">-- Choisir --</option>
+                            <option value="5" data-translate="atmosphere_5">Très agréable et motivante</option>
+                            <option value="4" data-translate="atmosphere_4">Plutôt agréable</option>
+                            <option value="3" data-translate="atmosphere_3">Neutre, ni agréable ni désagréable</option>
+                            <option value="2" data-translate="atmosphere_2">Plutôt tendue ou désagréable</option>
+                            <option value="1" data-translate="atmosphere_1">Très tendue et peu propice au travail</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="q_student_open" data-translate="q_student_open">4. Si tu pouvais changer une chose pour améliorer ce cours, quelle serait-elle ? (Facultatif)</label>
+                        <textarea id="q_student_open" name="q_student_open" data-placeholder="student_open_placeholder" placeholder="Tes idées ici..."></textarea>
+                    </div>
+                    <button type="submit" data-translate="submit_button">Envoyer mes réponses</button>
+                </form>
+            </section>
+
+            <section id="parent-form-screen" class="screen">
+                <h2 data-translate="parent_form_title">Questionnaire pour les Parents</h2>
+                <form id="parent-feedback-form">
+                    <div class="form-group">
+                        <label for="parent-level" data-translate="parent_level_label">Niveau scolaire de votre enfant concerné :</label>
+                        <select id="parent-level" name="parent_level" required>
+                            <option value="" data-translate="select_option">-- Choisir --</option>
+                            <option value="Primaire" data-translate="level_primary">Primaire</option>
+                            <option value="College" data-translate="level_college">Collège</option>
+                            <option value="Lycee" data-translate="level_lycee">Lycée</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="parent-subject" data-translate="parent_subject_label">Ce retour concerne-t-il un enseignant/une matière en particulier ou l'établissement en général ?</label>
+                        <select id="parent-subject" name="parent_subject" required>
+                            <option value="" data-translate="select_option">-- Choisir --</option>
+                            <option value="General" data-translate="subject_general_teacher">L'établissement en général</option>
+                            <option value="Mathematiques" data-translate="subject_math">Mathématiques</option>
+                            <option value="Francais" data-translate="subject_french">Français</option>
+                            <option value="HistoireGeo" data-translate="subject_histgeo">Histoire-Géographie</option>
+                            <option value="Sciences" data-translate="subject_science">Sciences</option>
+                            <option value="Langues" data-translate="subject_languages">Langues Vivantes</option>
+                            <option value="Autre" data-translate="subject_other">Autre matière spécifique</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label data-translate="q_parent_communication">1. Comment évaluez-vous la qualité de la communication de l'enseignant (ou de l'établissement) concernant les progrès et le travail de votre enfant ?</label>
+                        <select name="q_parent_communication" required>
+                            <option value="" data-translate="select_option">-- Choisir --</option>
+                            <option value="5" data-translate="rating_excellent">Excellente, claire et régulière</option>
+                            <option value="4" data-translate="rating_good">Bonne, informations suffisantes</option>
+                            <option value="3" data-translate="rating_average">Moyenne, pourrait être améliorée</option>
+                            <option value="2" data-translate="rating_fair">Passable, informations souvent manquantes</option>
+                            <option value="1" data-translate="rating_poor">Insuffisante ou inexistante</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label data-translate="q_parent_motivation">2. Selon vous, l'enseignant (ou l'équipe pédagogique) semble-t-il/elle globalement motivé(e) et impliqué(e) dans la réussite de votre enfant ?</label>
+                         <div class="radio-group">
+                            <div><input type="radio" name="q_parent_motivation" value="very" id="mot_very" required><label for="mot_very" data-translate="motivation_very">Oui, très motivé(e) et impliqué(e)</label></div>
+                            <div><input type="radio" name="q_parent_motivation" value="quite" id="mot_quite"><label for="mot_quite" data-translate="motivation_quite">Oui, plutôt motivé(e) et impliqué(e)</label></div>
+                            <div><input type="radio" name="q_parent_motivation" value="neutral" id="mot_neutral"><label for="mot_neutral" data-translate="motivation_neutral">Difficile à dire / Variable</label></div>
+                            <div><input type="radio" name="q_parent_motivation" value="little" id="mot_little"><label for="mot_little" data-translate="motivation_little">Peu motivé(e) ou impliqué(e)</label></div>
+                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="q_parent_open" data-translate="q_parent_open">3. Avez-vous une appréciation particulière ou une suggestion constructive à partager ? (Facultatif)</label>
+                        <textarea id="q_parent_open" name="q_parent_open" data-placeholder="parent_open_placeholder" placeholder="Vos appréciations, préoccupations ou suggestions..."></textarea>
+                    </div>
+                    <button type="submit" data-translate="submit_button">Envoyer mes réponses</button>
+                </form>
+            </section>
+
+            <section id="thank-you-screen" class="screen">
+                <div class="thank-you-message">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    <h2 data-translate="thank_you_title">Merci !</h2>
+                    <p data-translate="thank_you_message">Votre retour a été enregistré anonymement.</p>
+                    <button id="restart-survey" data-translate="restart_button">Accueil</button>
+                </div>
+            </section>
+
+            <section id="admin-dashboard-screen" class="screen">
+                <h2 data-translate="admin_dashboard_title">Tableau de Bord Administrateur</h2>
+
+                <div class="admin-tabs">
+                    <button class="admin-tab-button active" onclick="showAdminTab('data-visualization')" data-translate="tab_data_viz">Visualisation</button>
+                    <button class="admin-tab-button" onclick="showAdminTab('survey-management')" data-translate="tab_survey_management">Questionnaires</button>
+                    <button class="admin-tab-button" onclick="showAdminTab('pedagogical-structure')" data-translate="tab_pedagogical_structure">Structure</button>
+                    <button class="admin-tab-button" onclick="showAdminTab('config-management')" data-translate="tab_config_management">Paramètres</button>
+                </div>
+
+                <div id="data-visualization" class="admin-tab-content active">
+                    <div class="dashboard-filters">
+                        <div class="form-group">
+                            <label for="filter-period" data-translate="filter_period_label">Période :</label>
+                            <select id="filter-period">
+                                <option value="all" data-translate="period_all">Toutes</option>
+                                <option value="T1-2023" data-translate="period_T1_2023">Trim. 1 2023</option>
+                                <option value="T2-2024" data-translate="period_T2_2024">Trim. 2 2024</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filter-level" data-translate="filter_level_label">Niveau :</label>
+                            <select id="filter-level">
+                                <option value="all" data-translate="level_all">Tous</option>
+                                <option value="Primaire" data-translate="level_primary_group">Primaire</option>
+                                <option value="Primaire CP-CE2" data-translate="level_primary_early">Primaire (CP-CE2)</option>
+                                <option value="Primaire CM1-CM2" data-translate="level_primary_late">Primaire (CM1-CM2)</option>
+                                <option value="College" data-translate="level_college_group">Collège</option>
+                                <option value="College 6e-5e" data-translate="level_college_early">Collège (6e-5e)</option>
+                                <option value="College 4e-3e" data-translate="level_college_late">Collège (4e-3e)</option>
+                                <option value="Lycee" data-translate="level_lycee">Lycée</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filter-subject" data-translate="filter_subject_label">Discipline :</label>
+                            <select id="filter-subject">
+                                <option value="all" data-translate="subject_all">Toutes</option>
+                                <option value="General" data-translate="subject_general_combined">Général</option>
+                                <option value="Mathematiques" data-translate="subject_math">Mathématiques</option>
+                                <option value="Francais" data-translate="subject_french">Français</option>
+                                <option value="HistoireGeo" data-translate="subject_histgeo">Histoire-Géographie</option>
+                                <option value="Sciences" data-translate="subject_science">Sciences</option>
+                                <option value="Langues" data-translate="subject_languages">Langues Vivantes</option>
+                                <option value="EPS" data-translate="subject_sport">EPS</option>
+                                <option value="Arts" data-translate="subject_arts">Arts</option>
+                                <option value="Autre" data-translate="subject_other">Autre</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filter-role" data-translate="filter_role_label">Rôle :</label>
+                            <select id="filter-role">
+                                <option value="all" data-translate="role_all">Tous</option>
+                                <option value="student" data-translate="role_student_filter">Élèves</option>
+                                <option value="parent" data-translate="role_parent_filter">Parents</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="kpi-cards">
+                        <div class="kpi-card" data-kpi="total_responses">
+                            <h4 data-translate="kpi_total_responses">Réponses</h4>
+                            <p id="kpi-total-responses" class="value">0</p>
+                        </div>
+                        <div class="kpi-card" data-kpi="avg_clarity_student">
+                            <h4 data-translate="kpi_avg_clarity_student">Moy. Clarté (Él.)</h4>
+                            <p id="kpi-avg-clarity-student" class="value">N/A</p>
+                        </div>
+                        <div class="kpi-card" data-kpi="avg_comm_parent">
+                            <h4 data-translate="kpi_avg_comm_parent">Moy. Comm. (Par.)</h4>
+                            <p id="kpi-avg-comm-parent" class="value">N/A</p>
+                        </div>
+                        <div class="kpi-card" data-kpi="participation_rate">
+                            <h4 data-translate="kpi_participation_rate">Particip. (Sim.)</h4>
+                            <p id="kpi-participation-rate" class="value">N/A</p>
+                        </div>
+                    </div>
+
+                    <div class="charts-section">
+                        <div class="chart-container">
+                            <h3 data-translate="chart_avg_scores_title">Moyennes par Question</h3>
+                            <canvas id="chart-avg-scores"></canvas>
+                            <div class="no-data" style="display:none;" data-translate="no_data_available"></div>
+                        </div>
+                        <div class="chart-container">
+                             <h3 data-translate="chart_role_distribution_title">Répartition Participants</h3>
+                            <canvas id="chart-role-distribution"></canvas>
+                            <div class="no-data" style="display:none;" data-translate="no_data_available"></div>
+                        </div>
+                    </div>
+                     <div class="charts-section">
+                         <div class="chart-container">
+                            <h3 data-translate="chart_student_encouragement_title">Encouragement Questions (Élèves)</h3>
+                            <canvas id="chart-student-encouragement"></canvas>
+                            <div class="no-data" style="display:none;" data-translate="no_data_available"></div>
+                        </div>
+                        <div class="chart-container">
+                            <h3 data-translate="chart_parent_motivation_title">Motivation Enseignant (Parents)</h3>
+                            <canvas id="chart-parent-motivation"></canvas>
+                            <div class="no-data" style="display:none;" data-translate="no_data_available"></div>
+                        </div>
+                     </div>
+                     <div class="charts-section">
+                        <div class="chart-container">
+                           <h3 data-translate="chart_student_clarity_distribution_title">Distribution Notes Clarté (Élèves)</h3>
+                           <canvas id="chart-student-clarity-distribution"></canvas>
+                           <div class="no-data" style="display:none;" data-translate="no_data_available"></div>
+                       </div>
+                        <div class="chart-container">
+                            <h3 data-translate="chart_placeholder_title">Autre Analyse Pertinente</h3>
+                            <canvas id="chart-placeholder" style="display:none;"></canvas>
+                            <div class="no-data" data-translate="no_data_available">Pas encore de données.</div>
+                        </div>
+                    </div>
+
+                    <div class="qualitative-section">
+                        <div class="word-cloud-container">
+                            <h3 data-translate="qualitative_wordcloud_title">Mots Clés Fréquents</h3>
+                            <ul id="word-cloud-list"></ul>
+                             <div class="no-data" id="no-wordcloud-data" data-translate="no_data_available">Pas de données.</div>
+                        </div>
+                        <div class="comments-container">
+                            <h3 data-translate="qualitative_comments_title">Extraits de Commentaires</h3>
+                            <div id="comments-list"></div>
+                            <div class="no-data" id="no-comments-data" data-translate="no_data_available">Pas de données.</div>
+                        </div>
+                    </div>
+                </div> 
+
+                <div id="survey-management" class="admin-tab-content">
+                    <h3 data-translate="manage_questions_title">Gestion des Questions</h3>
+                    <div class="question-editor">
+                        <h4 data-translate="student_questions_title">Questions Élèves</h4>
+                        <ul id="student-question-list-admin" class="data-list"></ul>
+                        <button data-translate="add_student_question_btn" class="secondary">Ajouter Question Élève</button>
+
+                        <h4 data-translate="parent_questions_title">Questions Parents</h4>
+                        <ul id="parent-question-list-admin" class="data-list"></ul>
+                        <button data-translate="add_parent_question_btn" class="secondary">Ajouter Question Parent</button>
+                    </div>
+                </div>
+
+                <div id="pedagogical-structure" class="admin-tab-content">
+                    <h3 data-translate="manage_training_options_title">Gestion des Filières (Options de Formation)</h3>
+                    <div class="form-group">
+                        <label for="new-training-option-name" data-translate="new_training_option_name_label">Nom de la nouvelle filière :</label>
+                        <input type="text" id="new-training-option-name" data-placeholder="training_option_name_placeholder" placeholder="Ex: Scientifique, Littéraire, Technique">
+                        <button id="add-training-option-btn" data-translate="add_training_option_btn">Ajouter Filière</button>
+                    </div>
+                    <h4 data-translate="existing_training_options_title">Filières Existantes :</h4>
+                    <ul id="training-options-list" class="data-list"></ul>
+                    <hr style="margin: 25px 0; border-color: var(--border-color);">
+
+                    <h3 data-translate="manage_subjects_by_option_title">Gestion des Matières par Filière</h3>
+                    <div class="form-group">
+                        <label for="select-training-option-for-subject" data-translate="select_training_option_label">Sélectionner une filière :</label>
+                        <select id="select-training-option-for-subject">
+                            <option value="" data-translate="select_option_to_manage">-- Choisir une filière --</option>
+                        </select>
+                    </div>
+                    <div id="subjects-for-option-container" style="display:none;">
+                        <h4 id="subjects-for-option-title" data-translate="subjects_for_option_prefix">Matières pour la filière : </h4>
+                        <ul id="subjects-list-for-option" class="data-list"></ul>
+                        <div class="form-group">
+                            <label for="new-subject-name-for-option" data-translate="new_subject_name_label">Nouvelle matière pour cette filière :</label>
+                            <input type="text" id="new-subject-name-for-option" data-placeholder="subject_name_placeholder" placeholder="Ex: Physique-Chimie Avancée">
+                            <button id="add-subject-to-option-btn" data-translate="add_subject_btn">Ajouter Matière</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="config-management" class="admin-tab-content">
+                    <h3 data-translate="manage_kpi_display_title">Affichage des KPIs</h3>
+                    <div id="kpi-selection-admin"></div>
+                    <hr style="margin: 25px 0; border-color: var(--border-color);">
+                     <h3 data-translate="manage_custom_kpi_title">Gestion des Indicateurs de Performance Personnalisés</h3>
+                    <div class="form-group">
+                        <label for="new-custom-kpi-name" data-translate="new_custom_kpi_name_label">Nom du nouvel indicateur :</label>
+                        <input type="text" id="new-custom-kpi-name" data-placeholder="custom_kpi_name_placeholder" placeholder="Ex: Implication des élèves en projet">
+                        <label for="new-custom-kpi-desc" data-translate="new_custom_kpi_desc_label">Description (optionnel) :</label>
+                        <textarea id="new-custom-kpi-desc" data-placeholder="custom_kpi_desc_placeholder" placeholder="Comment cet indicateur est-il mesuré ou observé ?"></textarea>
+                        <button id="add-custom-kpi-btn" data-translate="add_custom_kpi_btn">Ajouter Indicateur</button>
+                    </div>
+                    <h4 data-translate="existing_custom_kpis_title">Indicateurs Personnalisés Existants :</h4>
+                    <ul id="custom-kpi-list" class="data-list"></ul>
+                    <hr style="margin: 25px 0; border-color: var(--border-color);">
+                    <h3 data-translate="manage_evaluation_periods_title">Périodes d'Évaluation</h3>
+                    <div class="form-group">
+                        <label for="new-period-name" data-translate="new_period_name_label">Nom période :</label>
+                        <input type="text" id="new-period-name" placeholder="Ex: Trimestre 3 2024">
+                        <button id="add-period-btn" data-translate="add_period_btn">Ajouter Période</button>
+                    </div>
+                </div>
+
+                <button id="back-to-survey-button" class="secondary" data-translate="back_to_survey_button" style="margin-top:25px;">Vue Participant</button>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let currentScreen = 'login-screen';
+        let selectedRole = null;
+        let currentAccessCode = null;
+        let currentLanguage = 'fr';
+        let allFeedbacks = [];
+        let charts = {}; 
+
+        const chartColors = {
+            blue: 'rgba(0, 122, 255, 0.8)', 
+            green: 'rgba(52, 199, 89, 0.8)', 
+            orange: 'rgba(255, 149, 0, 0.8)',
+            red: 'rgba(255, 59, 48, 0.8)', 
+            purple: 'rgba(88, 86, 214, 0.8)',
+            teal: 'rgba(90, 200, 250, 0.8)',
+            yellow: 'rgba(255, 204, 0, 0.8)',
+            pink: 'rgba(255, 45, 85, 0.8)',
+            indigo: 'rgba(88, 86, 214, 0.8)', 
+            grey: 'rgba(142, 142, 147, 0.8)'
+        };
+        const chartColorPalette = Object.values(chartColors);
+
+        const surveyQuestions = {
+            student: [
+                { id: 'q_student_clarity', text_key: 'q_student_clarity', type: 'rating_visual', options_keys: ['rating_1_text','rating_2_text','rating_3_text','rating_4_text','rating_5_text'] },
+                { id: 'q_student_encouragement', text_key: 'q_student_encouragement', type: 'radio', options_keys: ['yes', 'sometimes', 'no'] },
+                { id: 'q_student_atmosphere', text_key: 'q_student_atmosphere', type: 'select', options_keys: ['atmosphere_5','atmosphere_4','atmosphere_3','atmosphere_2','atmosphere_1'] },
+                { id: 'q_student_open', text_key: 'q_student_open', type: 'textarea', placeholder_key: 'student_open_placeholder' }
+            ],
+            parent: [
+                { id: 'q_parent_communication', text_key: 'q_parent_communication', type: 'select', options_keys: ['rating_excellent','rating_good','rating_average','rating_fair','rating_poor'] },
+                { id: 'q_parent_motivation', text_key: 'q_parent_motivation', type: 'radio', options_keys: ['motivation_very', 'motivation_quite', 'motivation_neutral', 'motivation_little'] },
+                { id: 'q_parent_open', text_key: 'q_parent_open', type: 'textarea', placeholder_key: 'parent_open_placeholder' }
+            ]
+        };
+        const availableKPIs = [
+            { id: 'total_responses', text_key: 'kpi_total_responses', default_visible: true },
+            { id: 'avg_clarity_student', text_key: 'kpi_avg_clarity_student', default_visible: true },
+            { id: 'avg_comm_parent', text_key: 'kpi_avg_comm_parent', default_visible: true },
+            { id: 'participation_rate', text_key: 'kpi_participation_rate', default_visible: false },
+        ];
+        let visibleKPIs = new Set(availableKPIs.filter(k => k.default_visible).map(k => k.id));
+
+        const mockFeedbacks = [
+            { feedback_id: "fid_1", timestamp: "2023-10-15T10:00:00Z", period: "T1-2023", establishment_id: "ETAB_A", access_token_hash: "hashed_C1", language: "fr", role: "student", school_level: "Primaire CM1-CM2", subject: "Mathematiques", answers: { q_student_clarity: "4", q_student_encouragement: "yes", q_student_atmosphere: "5", q_student_open: "Le prof explique bien. J'aime les maths." } },
+            { feedback_id: "fid_2", timestamp: "2023-10-16T11:00:00Z", period: "T1-2023", establishment_id: "ETAB_A", access_token_hash: "hashed_C2", language: "fr", role: "parent", school_level: "College 6e-5e", subject: "Francais", answers: { q_parent_communication: "5", q_parent_motivation: "very", q_parent_open: "Excellente communication avec Mme. Dupont." } },
+            { feedback_id: "fid_3", timestamp: "2023-10-17T09:30:00Z", period: "T1-2023", establishment_id: "ETAB_A", access_token_hash: "hashed_C3", language: "en", role: "student", school_level: "Lycee", subject: "General", answers: { q_student_clarity: "3", q_student_encouragement: "sometimes", q_student_atmosphere: "3", q_student_open: "School is okay." } },
+            { feedback_id: "fid_4", timestamp: "2024-01-20T14:15:00Z", period: "T2-2024", establishment_id: "ETAB_A", access_token_hash: "hashed_C4", language: "fr", role: "student", school_level: "Primaire CP-CE2", subject: "General", answers: { q_student_clarity: "5", q_student_encouragement: "yes", q_student_atmosphere: "4", q_student_open: "La maîtresse est gentille." } },
+            { feedback_id: "fid_5", timestamp: "2024-01-22T16:00:00Z", period: "T2-2024", establishment_id: "ETAB_A", access_token_hash: "hashed_C5", language: "fr", role: "parent", school_level: "Lycee", subject: "Mathematiques", answers: { q_parent_communication: "2", q_parent_motivation: "neutral", q_parent_open: "Peu d'infos." } },
+            { feedback_id: "fid_6", timestamp: "2024-01-25T08:00:00Z", period: "T2-2024", establishment_id: "ETAB_A", access_token_hash: "hashed_C6", language: "fr", role: "student", school_level: "College 4e-3e", subject: "HistoireGeo", answers: { q_student_clarity: "4", q_student_encouragement: "no", q_student_atmosphere: "4", q_student_open: "Cours intéressants mais je n'ose pas poser de questions." } },
+            { feedback_id: "fid_7", timestamp: "2024-01-28T18:30:00Z", period: "T2-2024", establishment_id: "ETAB_A", access_token_hash: "hashed_C7", language: "ar", role: "parent", school_level: "Primaire", subject: "General", answers: { q_parent_communication: "4", q_parent_motivation: "quite", q_parent_open: "التواصل جيد." } },
+            { feedback_id: "fid_8", timestamp: "2024-01-29T10:00:00Z", period: "T2-2024", role: "student", school_level: "Primaire CM1-CM2", subject: "Francais", answers: { q_student_clarity: "2", q_student_encouragement: "sometimes", q_student_atmosphere: "3", q_student_open: "C'est un peu difficile." } },
+            { feedback_id: "fid_9", timestamp: "2024-01-30T11:00:00Z", period: "T2-2024", role: "student", school_level: "Lycee", subject: "Sciences", answers: { q_student_clarity: "5", q_student_encouragement: "yes", q_student_atmosphere: "5", q_student_open: "Super cours de SVT !" } },
+            { feedback_id: "fid_10", timestamp: "2024-02-01T15:00:00Z", period: "T2-2024", role: "parent", school_level: "College 4e-3e", subject: "General", answers: { q_parent_communication: "3", q_parent_motivation: "quite", q_parent_open: "Suivi correct." } },
+        ];
+        allFeedbacks = [...mockFeedbacks];
+
+        let mockTrainingOptions = [
+            { id: 'opt_sci', name: 'Scientifique', subjects: ['Mathématiques Avancées', 'Physique Appliquée', 'Chimie Organique', 'Biologie Cellulaire'] },
+            { id: 'opt_lit', name: 'Littéraire', subjects: ['Littérature Comparée', 'Philosophie Moderne', 'Histoire de l\'Art', 'Latin'] },
+            { id: 'opt_eco', name: 'Économie & Gestion', subjects: ['Microéconomie', 'Macroéconomie', 'Comptabilité Analytique', 'Marketing Stratégique'] }
+        ];
+        let mockCustomKPIs = [
+            { id: 'kpi_proj_impl', name: 'Implication en projet', description: 'Capacité à travailler en équipe et à livrer les projets.'},
+            { id: 'kpi_class_particip', name: 'Participation active en classe', description: 'Fréquence et pertinence des interventions orales.'}
+        ];
+        
+        const translations = {
+            fr: {
+                app_title: "Écho Scolaire", select_language_label: "Langue :", admin_button: "Vue Admin",
+                login_title: "Accès au Questionnaire", access_code_label: "Entrez votre code d'accès :", login_error_message: "Code d'accès invalide.", login_button: "Continuer",
+                role_selection_title: "Qui êtes-vous ?", role_selection_prompt: "Sélectionnez votre rôle :", role_student: "Élève", role_parent: "Parent",
+                student_form_title: "Questionnaire Élèves", student_level_label: "Niveau scolaire ?", select_option: "-- Choisir --",
+                level_primary_early: "Primaire (CP-CE2)", level_primary_late: "Primaire (CM1-CM2)", level_college_early: "Collège (6e-5e)", level_college_late: "Collège (4e-3e)", level_lycee: "Lycée",
+                student_subject_label: "Matière ?", subject_general: "Général (tous)", subject_math: "Maths", subject_french: "Français", subject_histgeo: "Hist-Géo", subject_science: "Sciences", subject_languages: "Langues", subject_sport: "EPS", subject_arts: "Arts", subject_other: "Autre",
+                q_student_clarity: "L'enseignant explique-t-il clairement les leçons et les consignes ?", 
+                rating_1_text: "Pas du tout clairement", rating_2_text: "Un peu clairement", rating_3_text: "Assez clairement", rating_4_text: "Clairement", rating_5_text: "Très clairement",
+                q_student_encouragement: "Te sens-tu à l'aise et encouragé(e) pour poser des questions en classe ?", 
+                yes: "Oui, toujours", sometimes: "Oui, parfois", no: "Non, rarement ou jamais",
+                q_student_atmosphere: "Comment décrirais-tu l'ambiance générale de travail dans cette classe ?", 
+                atmosphere_5: "Très agréable et motivante", atmosphere_4: "Plutôt agréable", atmosphere_3: "Neutre", atmosphere_2: "Plutôt tendue", atmosphere_1: "Très tendue",
+                q_student_open: "Si tu pouvais changer une chose pour améliorer ce cours, quelle serait-elle ? (Facultatif)", student_open_placeholder: "Tes idées ici...", 
+                submit_button: "Envoyer mes réponses",
+                parent_form_title: "Questionnaire Parents", parent_level_label: "Niveau de votre enfant :", level_primary: "Primaire", level_college: "Collège",
+                parent_subject_label: "Ce retour concerne-t-il un enseignant/matière ou l'établissement en général ?", subject_general_teacher: "L'établissement en général",
+                q_parent_communication: "Communication de l'enseignant (ou établissement) sur les progrès de votre enfant ?", 
+                rating_excellent: "Excellente", rating_good: "Bonne", rating_average: "Moyenne", rating_fair: "Passable", rating_poor: "Insuffisante",
+                q_parent_motivation: "L'enseignant (ou équipe) semble-t-il motivé(e) et impliqué(e) ?", 
+                motivation_very: "Oui, très motivé(e)", motivation_quite: "Oui, plutôt motivé(e)", motivation_neutral: "Difficile à dire / Variable", motivation_little: "Peu motivé(e)",
+                q_parent_open: "Appréciation particulière ou suggestion constructive ? (Facultatif)", parent_open_placeholder: "Vos appréciations...",
+                thank_you_title: "Merci !", thank_you_message: "Votre retour a été enregistré anonymement.", restart_button: "Accueil",
+                admin_dashboard_title: "Tableau de Bord Admin",
+                tab_data_viz: "Visualisation", tab_survey_management: "Questionnaires", tab_pedagogical_structure: "Structure", tab_config_management: "Paramètres",
+                filter_period_label: "Période :", period_all: "Toutes", period_T1_2023: "Trim. 1 2023", period_T2_2024: "Trim. 2 2024",
+                filter_level_label: "Niveau :", level_all: "Tous", level_primary_group: "Primaire (Gr.)", level_college_group: "Collège (Gr.)",
+                filter_subject_label: "Discipline :", subject_all: "Toutes", subject_general_combined: "Général",
+                filter_role_label: "Rôle :", role_all: "Tous", role_student_filter: "Élèves", role_parent_filter: "Parents",
+                kpi_total_responses: "Total Réponses", kpi_avg_clarity_student: "Moy. Clarté (Él.)", kpi_avg_comm_parent: "Moy. Comm. (Par.)", kpi_participation_rate: "Taux Particip.",
+                chart_avg_scores_title: "Moyennes Générales par Question", chart_role_distribution_title: "Répartition des Participants",
+                chart_student_encouragement_title: "Encouragement à Poser des Questions (Élèves)", chart_parent_motivation_title: "Perception Motivation Enseignant (Parents)",
+                chart_student_clarity_distribution_title: "Distribution des Notes de Clarté (Élèves)", 
+                chart_placeholder_title: "Autre Analyse Pertinente", 
+                qualitative_wordcloud_title: "Mots Clés Fréquents", qualitative_comments_title: "Extraits de Commentaires", no_data_available: "Pas de données disponibles pour la sélection actuelle.",
+                manage_questions_title: "Gestion des Questions", student_questions_title: "Questions Élèves", add_student_question_btn: "Ajouter Question Élève", parent_questions_title: "Questions Parents", add_parent_question_btn: "Ajouter Question Parent",
+                edit_btn_label: "Éditer", delete_btn_label: "Suppr.", question_type_label: "Type", edit_not_implemented: "Fonction d'édition non implémentée.", delete_not_implemented: "Fonction de suppression non implémentée.",
+                manage_training_options_title: "Gestion des Filières", new_training_option_name_label: "Nom nouvelle filière :", training_option_name_placeholder: "Ex: Scientifique...", add_training_option_btn: "Ajouter Filière",
+                existing_training_options_title: "Filières Actuelles :",
+                manage_subjects_by_option_title: "Matières par Filière", select_training_option_label: "Choisir une filière :", select_option_to_manage: "-- Gérer matières d'une filière --",
+                subjects_for_option_prefix: "Matières pour", new_subject_name_label: "Nouvelle matière :", subject_name_placeholder: "Ex: Physique Quantique", add_subject_btn: "Ajouter Matière",
+                manage_kpi_display_title: "Affichage des KPIs", manage_evaluation_periods_title: "Périodes d'Évaluation", new_period_name_label: "Nom période :", add_period_btn: "Ajouter Période",
+                back_to_survey_button: "Retour Vue Participant",
+                login_error_message_empty: "Veuillez entrer un code d'accès.",
+                period_exists_error: "Cette période existe déjà.", period_added_success_prefix: "Période", period_added_success_suffix: "ajoutée (simulation).", enter_period_name_error: "Veuillez entrer un nom pour la période.",
+                manage_custom_kpi_title: "Indicateurs Personnalisés", new_custom_kpi_name_label: "Nom indicateur:", custom_kpi_name_placeholder: "Ex: Autonomie", new_custom_kpi_desc_label: "Description:", custom_kpi_desc_placeholder: "Mesure/Observation?", add_custom_kpi_btn: "Ajouter Indic.", existing_custom_kpis_title: "Indicateurs Personnalisés:",
+                no_training_options_defined: "Aucune filière définie.", no_subjects_for_option: "Aucune matière pour cette filière.", no_custom_kpis_defined: "Aucun indicateur personnalisé.",
+                enter_training_option_name_error: "Veuillez entrer un nom pour la filière.", training_option_exists_error: "Cette filière existe déjà.",
+                select_training_option_first_error: "Veuillez d'abord sélectionner une filière.",
+                enter_subject_name_error: "Veuillez entrer un nom pour la matière.", subject_exists_in_option_error: "Cette matière existe déjà dans cette filière.",
+                enter_custom_kpi_name_error: "Veuillez entrer un nom pour l'indicateur.", custom_kpi_exists_error: "Cet indicateur personnalisé existe déjà.",
+                fill_all_required_fields: "Veuillez remplir tous les champs obligatoires."
+            },
+            en: { 
+                app_title: "School Echo", select_language_label: "Language:", admin_button: "Admin View",
+                login_title: "Access Questionnaire", access_code_label: "Enter access code:", login_error_message: "Invalid access code.", login_button: "Continue",
+                role_selection_title: "Who are you?", role_selection_prompt: "Select your role:", role_student: "Student", role_parent: "Parent",
+                student_form_title: "Student Survey", student_level_label: "Your grade level?", select_option: "-- Select --",
+                level_primary_early: "Primary (G1-G2)", level_primary_late: "Primary (G3-G5)", level_college_early: "Middle School (G6-G7)", level_college_late: "Middle School (G8-G9)", level_lycee: "High School",
+                student_subject_label: "Subject?", subject_general: "General (all)", subject_math: "Math", subject_french: "French", subject_histgeo: "History-Geo", subject_science: "Science", subject_languages: "Languages", subject_sport: "P.E.", subject_arts: "Arts", subject_other: "Other",
+                q_student_clarity: "Does the teacher explain lessons and instructions clearly?", 
+                rating_1_text: "Not at all clearly", rating_2_text: "A bit clearly", rating_3_text: "Fairly clearly", rating_4_text: "Clearly", rating_5_text: "Very clearly",
+                q_student_encouragement: "Do you feel comfortable and encouraged to ask questions in class?", 
+                yes: "Yes, always", sometimes: "Yes, sometimes", no: "No, rarely or never",
+                q_student_atmosphere: "How would you describe the general working atmosphere in this class?", 
+                atmosphere_5: "Very pleasant and motivating", atmosphere_4: "Rather pleasant", atmosphere_3: "Neutral", atmosphere_2: "Rather tense", atmosphere_1: "Very tense",
+                q_student_open: "If you could change one thing to improve this course, what would it be? (Optional)", student_open_placeholder: "Your ideas here...", 
+                submit_button: "Send my answers",
+                parent_form_title: "Parent Survey", parent_level_label: "Your child's grade level:", level_primary: "Primary", level_college: "Middle School",
+                parent_subject_label: "Does this feedback concern a teacher/subject or the school in general?", subject_general_teacher: "The school in general",
+                q_parent_communication: "Teacher's (or school's) communication on your child's progress?", 
+                rating_excellent: "Excellent", rating_good: "Good", rating_average: "Average", rating_fair: "Fair", rating_poor: "Poor",
+                q_parent_motivation: "Does the teacher (or staff) seem motivated and involved?", 
+                motivation_very: "Yes, very motivated", motivation_quite: "Yes, rather motivated", motivation_neutral: "Hard to say / Varies", motivation_little: "Not very motivated",
+                q_parent_open: "Any particular appreciation or constructive suggestion? (Optional)", parent_open_placeholder: "Your appreciations...",
+                thank_you_title: "Thank You!", thank_you_message: "Your feedback has been anonymously recorded.", restart_button: "Home",
+                admin_dashboard_title: "Admin Dashboard",
+                tab_data_viz: "Visualization", tab_survey_management: "Surveys Mgt.", tab_pedagogical_structure: "Pedag. Struct.", tab_config_management: "Settings",
+                filter_period_label: "Period:", period_all: "All", period_T1_2023: "Term 1 2023", period_T2_2024: "Term 2 2024",
+                filter_level_label: "Level:", level_all: "All", level_primary_group: "Primary (Gr.)", level_college_group: "Middle (Gr.)",
+                filter_subject_label: "Subject:", subject_all: "All", subject_general_combined: "General",
+                filter_role_label: "Role:", role_all: "All", role_student_filter: "Students", role_parent_filter: "Parents",
+                kpi_total_responses: "Total Responses", kpi_avg_clarity_student: "Avg. Clarity (Std.)", kpi_avg_comm_parent: "Avg. Comm. (Par.)", kpi_participation_rate: "Particip. Rate",
+                chart_avg_scores_title: "Average Scores by Question", chart_role_distribution_title: "Participant Distribution",
+                chart_student_encouragement_title: "Question Encouragement (Students)", chart_parent_motivation_title: "Teacher Motivation (Parents)",
+                chart_student_clarity_distribution_title: "Clarity Score Distribution (Students)", 
+                chart_placeholder_title: "Other Relevant Analysis", 
+                qualitative_wordcloud_title: "Frequent Keywords", qualitative_comments_title: "Comment Snippets", no_data_available: "No data available for the current selection.",
+                manage_questions_title: "Question Management", student_questions_title: "Student Questions", add_student_question_btn: "Add Student Question", parent_questions_title: "Parent Questions", add_parent_question_btn: "Add Parent Question",
+                edit_btn_label: "Edit", delete_btn_label: "Del", question_type_label: "Type", edit_not_implemented: "Edit function not implemented.", delete_not_implemented: "Delete function not implemented.",
+                manage_training_options_title: "Manage Training Options", new_training_option_name_label: "New option name:", training_option_name_placeholder: "Ex: Scientific...", add_training_option_btn: "Add Option",
+                existing_training_options_title: "Current Options:",
+                manage_subjects_by_option_title: "Subjects by Option", select_training_option_label: "Select option:", select_option_to_manage: "-- Manage subjects for an option --",
+                subjects_for_option_prefix: "Subjects for", new_subject_name_label: "New subject:", subject_name_placeholder: "Ex: Quantum Physics", add_subject_btn: "Add Subject",
+                manage_kpi_display_title: "KPI Display", manage_evaluation_periods_title: "Evaluation Periods", new_period_name_label: "Period name:", add_period_btn: "Add Period",
+                back_to_survey_button: "Back to Participant View",
+                login_error_message_empty: "Please enter an access code.",
+                period_exists_error: "This period already exists.", period_added_success_prefix: "Period", period_added_success_suffix: "added (simulation).", enter_period_name_error: "Please enter a name for the period.",
+                manage_custom_kpi_title: "Custom KPIs", new_custom_kpi_name_label: "KPI Name:", custom_kpi_name_placeholder: "Ex: Autonomy", new_custom_kpi_desc_label: "Description:", custom_kpi_desc_placeholder: "Measure/Obs?", add_custom_kpi_btn: "Add KPI", existing_custom_kpis_title: "Custom KPIs:",
+                no_training_options_defined: "No training options defined.", no_subjects_for_option: "No subjects for this option.", no_custom_kpis_defined: "No custom KPIs defined.",
+                enter_training_option_name_error: "Please enter a name for the training option.", training_option_exists_error: "This training option already exists.",
+                select_training_option_first_error: "Please select a training option first.",
+                enter_subject_name_error: "Please enter a name for the subject.", subject_exists_in_option_error: "This subject already exists in this option.",
+                enter_custom_kpi_name_error: "Please enter a name for the KPI.", custom_kpi_exists_error: "This custom KPI already exists.",
+                fill_all_required_fields: "Please fill all required fields."
+            },
+            ar: { 
+                app_title: "صدى المدرسة", select_language_label: "اللغة:", admin_button: "عرض المسؤول",
+                login_title: "الوصول إلى الاستبيان", access_code_label: "أدخل رمز الدخول:", login_error_message: "رمز الدخول غير صالح.", login_button: "متابعة",
+                role_selection_title: "من أنت؟", role_selection_prompt: "اختر دورك:", role_student: "طالب", role_parent: "ولي أمر",
+                student_form_title: "استبيان الطلاب", student_level_label: "مستواك الدراسي؟", select_option: "-- اختر --",
+                level_primary_early: "ابتدائي (صغار)", level_primary_late: "ابتدائي (كبار)", level_college_early: "إعدادي (صغار)", level_college_late: "إعدادي (كبار)", level_lycee: "ثانوي",
+                student_subject_label: "المادة؟", subject_general: "عام (الكل)", subject_math: "رياضيات", subject_french: "فرنسي", subject_histgeo: "تاريخ-جغرافيا", subject_science: "علوم", subject_languages: "لغات", subject_sport: "رياضة", subject_arts: "فنون", subject_other: "أخرى",
+                q_student_clarity: "هل يشرح المعلم الدروس والتعليمات بوضوح؟",
+                rating_1_text: "ليس واضحا أبدا", rating_2_text: "واضح قليلا", rating_3_text: "واضح إلى حد ما", rating_4_text: "واضح", rating_5_text: "واضح جدا",
+                q_student_encouragement: "هل تشعر بالراحة والتشجيع لطرح الأسئلة في الفصل؟",
+                yes: "نعم دائما", sometimes: "نعم أحيانا", no: "لا، نادرا أو أبدا",
+                q_student_atmosphere: "كيف تصف جو العمل العام في هذا الفصل؟",
+                atmosphere_5: "ممتع ومحفز جدا", atmosphere_4: "ممتع نوعا ما", atmosphere_3: "محايد", atmosphere_2: "متوتر نوعا ما", atmosphere_1: "متوتر جدا",
+                q_student_open: "إذا كان بإمكانك تغيير شيء واحد لتحسين هذا المقرر، فماذا سيكون؟ (اختياري)", student_open_placeholder: "أفكارك هنا...",
+                submit_button: "إرسال إجاباتي",
+                parent_form_title: "استبيان أولياء الأمور", parent_level_label: "مستوى طفلك الدراسي:", level_primary: "ابتدائي", level_college: "إعدادي",
+                parent_subject_label: "هل تخص هذه الملاحظات معلما/مادة معينة أم المؤسسة بشكل عام؟", subject_general_teacher: "المؤسسة بشكل عام",
+                q_parent_communication: "تواصل المعلم (أو المؤسسة) بشأن تقدم طفلك؟",
+                rating_excellent: "ممتاز", rating_good: "جيد", rating_average: "متوسط", rating_fair: "مقبول", rating_poor: "ضعيف",
+                q_parent_motivation: "هل يبدو المعلم (أو الفريق التربوي) متحفزًا ومنخرطًا؟",
+                motivation_very: "نعم، متحفز جدا", motivation_quite: "نعم، متحفز نوعا ما", motivation_neutral: "يصعب القول / متغير", motivation_little: "قليل التحفيز",
+                q_parent_open: "تقدير خاص أو اقتراح بناء؟ (اختياري)", parent_open_placeholder: "تقديراتكم...",
+                thank_you_title: "شكرًا!", thank_you_message: "تم تسجيل ملاحظاتك بسرية.", restart_button: "الرئيسية",
+                admin_dashboard_title: "لوحة تحكم المسؤول",
+                tab_data_viz: "تصور البيانات", tab_survey_management: "إدارة الاستبيانات", tab_pedagogical_structure: "الهيكل التربوي", tab_config_management: "الإعدادات",
+                filter_period_label: "الفترة:", period_all: "الكل", period_T1_2023: "فصل1 2023", period_T2_2024: "فصل2 2024",
+                filter_level_label: "المستوى:", level_all: "الكل", level_primary_group: "ابتدائي (مجموعة)", level_college_group: "إعدادي (مجموعة)",
+                filter_subject_label: "المادة:", subject_all: "الكل", subject_general_combined: "عام",
+                filter_role_label: "الدور:", role_all: "الكل", role_student_filter: "طلاب", role_parent_filter: "أولياء أمور",
+                kpi_total_responses: "إجمالي الردود", kpi_avg_clarity_student: "متوسط وضوح (طلاب)", kpi_avg_comm_parent: "متوسط تواصل (أولياء)", kpi_participation_rate: "معدل المشاركة",
+                chart_avg_scores_title: "متوسط الدرجات حسب السؤال", chart_role_distribution_title: "توزيع المشاركين",
+                chart_student_encouragement_title: "تشجيع طرح الأسئلة (طلاب)", chart_parent_motivation_title: "تصور دافعية المعلم (أولياء)",
+                chart_student_clarity_distribution_title: "توزيع درجات الوضوح (طلاب)", 
+                chart_placeholder_title: "تحليل آخر ذو صلة", 
+                qualitative_wordcloud_title: "الكلمات المفتاحية المتكررة", qualitative_comments_title: "مقتطفات من التعليقات", no_data_available: "لا توجد بيانات متاحة للتحديد الحالي.",
+                manage_questions_title: "إدارة الأسئلة", student_questions_title: "أسئلة الطلاب", add_student_question_btn: "إضافة سؤال طالب", parent_questions_title: "أسئلة أولياء الأمور", add_parent_question_btn: "إضافة سؤال ولي أمر",
+                edit_btn_label: "تعديل", delete_btn_label: "حذف", question_type_label: "النوع", edit_not_implemented: "وظيفة التعديل غير منفذة.", delete_not_implemented: "وظيفة الحذف غير منفذة.",
+                manage_training_options_title: "إدارة المسارات", new_training_option_name_label: "اسم المسار:", training_option_name_placeholder: "مثال: علمي...", add_training_option_btn: "إضافة مسار",
+                existing_training_options_title: "المسارات الحالية:",
+                manage_subjects_by_option_title: "المواد حسب المسار", select_training_option_label: "اختر مسار:", select_option_to_manage: "-- إدارة مواد المسار --",
+                subjects_for_option_prefix: "مواد لـ", new_subject_name_label: "مادة جديدة:", subject_name_placeholder: "مثال: فيزياء كم", add_subject_btn: "إضافة مادة",
+                manage_kpi_display_title: "عرض المؤشرات", manage_evaluation_periods_title: "فترات التقييم", new_period_name_label: "اسم الفترة:", add_period_btn: "إضافة فترة",
+                back_to_survey_button: "عودة لعرض المشارك",
+                login_error_message_empty: "الرجاء إدخال رمز الدخول.",
+                period_exists_error: "هذه الفترة موجودة بالفعل.", period_added_success_prefix: "الفترة", period_added_success_suffix: "أضيفت (محاكاة).", enter_period_name_error: "الرجاء إدخال اسم للفترة.",
+                manage_custom_kpi_title: "مؤشرات مخصصة", new_custom_kpi_name_label: "اسم المؤشر:", custom_kpi_name_placeholder: "مثال: استقلالية", new_custom_kpi_desc_label: "الوصف:", custom_kpi_desc_placeholder: "قياس/ملاحظة؟", add_custom_kpi_btn: "إضافة مؤشر", existing_custom_kpis_title: "المؤشرات المخصصة:",
+                no_training_options_defined: "لا توجد مسارات معرفة.", no_subjects_for_option: "لا توجد مواد لهذا المسار.", no_custom_kpis_defined: "لا توجد مؤشرات مخصصة.",
+                enter_training_option_name_error: "الرجاء إدخال اسم للمسار.", training_option_exists_error: "هذا المسار موجود بالفعل.",
+                select_training_option_first_error: "الرجاء اختيار مسار أولاً.",
+                enter_subject_name_error: "الرجاء إدخال اسم للمادة.", subject_exists_in_option_error: "هذه المادة موجودة بالفعل في هذا المسار.",
+                enter_custom_kpi_name_error: "الرجاء إدخال اسم للمؤشر.", custom_kpi_exists_error: "هذا المؤشر المخصص موجود بالفعل.",
+                fill_all_required_fields: "الرجاء ملء جميع الحقول الإلزامية."
+            }
+        };
+
+        const DOM = {
+            mainContentWrapper: document.getElementById('main-content-wrapper'),
+            screens: document.querySelectorAll('.screen'),
+            loginScreen: document.getElementById('login-screen'),
+            roleSelectionScreen: document.getElementById('role-selection-screen'),
+            studentFormScreen: document.getElementById('student-form-screen'),
+            parentFormScreen: document.getElementById('parent-form-screen'),
+            thankYouScreen: document.getElementById('thank-you-screen'),
+            adminDashboardScreen: document.getElementById('admin-dashboard-screen'),
+            accessCodeInput: document.getElementById('access-code'),
+            loginError: document.getElementById('login-error'),
+            submitAccessCodeButton: document.getElementById('submit-access-code'),
+            selectStudentButton: document.getElementById('select-student'),
+            selectParentButton: document.getElementById('select-parent'),
+            studentForm: document.getElementById('student-feedback-form'),
+            parentForm: document.getElementById('parent-feedback-form'),
+            restartButton: document.getElementById('restart-survey'),
+            languageSelect: document.getElementById('language'),
+            adminAccessButton: document.getElementById('admin-access-button'),
+            backToSurveyButton: document.getElementById('back-to-survey-button'),
+            clarityRatingDiv: document.getElementById('q_student_clarity_rating'),
+            clarityRatingValueInput: document.getElementById('q_student_clarity_value'),
+            clarityRatingSelectFallback: document.querySelector('select[name="q_student_clarity_select_fallback"]'),
+            filterPeriod: document.getElementById('filter-period'),
+            filterLevel: document.getElementById('filter-level'),
+            filterSubject: document.getElementById('filter-subject'),
+            filterRole: document.getElementById('filter-role'),
+            kpiTotalResponses: document.getElementById('kpi-total-responses'),
+            kpiAvgClarityStudent: document.getElementById('kpi-avg-clarity-student'),
+            kpiAvgCommParent: document.getElementById('kpi-avg-comm-parent'),
+            kpiParticipationRate: document.getElementById('kpi-participation-rate'),
+            wordCloudList: document.getElementById('word-cloud-list'),
+            commentsListDiv: document.getElementById('comments-list'),
+            noWordcloudData: document.getElementById('no-wordcloud-data'),
+            noCommentsData: document.getElementById('no-comments-data'),
+            adminTabButtons: document.querySelectorAll('.admin-tab-button'),
+            adminTabContents: document.querySelectorAll('.admin-tab-content'),
+            studentQuestionListAdmin: document.getElementById('student-question-list-admin'),
+            parentQuestionListAdmin: document.getElementById('parent-question-list-admin'),
+            kpiSelectionAdminDiv: document.getElementById('kpi-selection-admin'),
+            newPeriodNameInput: document.getElementById('new-period-name'),
+            addPeriodButton: document.getElementById('add-period-btn'),
+            pedagogicalStructureTabContent: document.getElementById('pedagogical-structure'),
+            newTrainingOptionNameInput: document.getElementById('new-training-option-name'),
+            addTrainingOptionBtn: document.getElementById('add-training-option-btn'),
+            trainingOptionsList: document.getElementById('training-options-list'),
+            selectTrainingOptionForSubject: document.getElementById('select-training-option-for-subject'),
+            subjectsForOptionContainer: document.getElementById('subjects-for-option-container'),
+            subjectsForOptionTitle: document.getElementById('subjects-for-option-title'),
+            subjectsListForOption: document.getElementById('subjects-list-for-option'),
+            newSubjectNameForOptionInput: document.getElementById('new-subject-name-for-option'),
+            addSubjectToOptionBtn: document.getElementById('add-subject-to-option-btn'),
+            newCustomKPINameInput: document.getElementById('new-custom-kpi-name'),
+            newCustomKPIDescInput: document.getElementById('new-custom-kpi-desc'),
+            addCustomKPIBtn: document.getElementById('add-custom-kpi-btn'),
+            customKPIList: document.getElementById('custom-kpi-list'),
+        };
+
+        function showScreen(screenId) {
+            DOM.screens.forEach(screen => screen.classList.remove('active'));
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+                currentScreen = screenId;
+                if (screenId === 'admin-dashboard-screen') {
+                    DOM.mainContentWrapper.classList.add('dashboard-container');
+                    DOM.mainContentWrapper.classList.remove('container');
+                    const vizTabButton = document.querySelector('.admin-tab-button[onclick="showAdminTab(\'data-visualization\')"]');
+                    const currentActiveButton = document.querySelector('.admin-tab-button.active');
+                    if(currentActiveButton !== vizTabButton) {
+                         if(currentActiveButton) currentActiveButton.classList.remove('active');
+                         if(vizTabButton) vizTabButton.classList.add('active');
+                    }
+                    showAdminTab('data-visualization'); 
+                } else {
+                    DOM.mainContentWrapper.classList.add('container');
+                    DOM.mainContentWrapper.classList.remove('dashboard-container');
+                }
+                window.scrollTo(0, 0);
+            }
+        }
+        function updateUIForLanguage() {
+            const lang = DOM.languageSelect.value;
+            currentLanguage = lang;
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            const currentTranslations = translations[lang] || translations.fr;
+
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                const key = el.getAttribute('data-translate');
+                let translationText = currentTranslations[key] || el.dataset.defaultText || `[${key}]`;
+
+                if (el.hasAttribute('data-placeholder') && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT')) {
+                     el.placeholder = translationText;
+                } else if (el.tagName === 'OPTION' && el.value === "") {
+                    el.textContent = translationText;
+                } else {
+                     el.textContent = translationText;
+                }
+            });
+            if (currentScreen === 'admin-dashboard-screen') {
+                const activeTab = document.querySelector('.admin-tab-content.active');
+                if (activeTab) {
+                    if (activeTab.id === 'data-visualization') renderAdminDashboard();
+                    else if (activeTab.id === 'survey-management') renderAdminQuestionLists();
+                    else if (activeTab.id === 'pedagogical-structure') renderPedagogicalStructureTab();
+                    else if (activeTab.id === 'config-management') renderConfigManagementTab();
+                } else {
+                    renderAdminDashboard(); 
+                }
+            }
+        }
+        function handleAccessCode() {
+            const enteredCode = DOM.accessCodeInput.value.trim();
+            const enteredCodeUpper = enteredCode.toUpperCase();
+
+            if (enteredCode) {
+                currentAccessCode = enteredCode;
+                DOM.loginError.style.display = 'none';
+                if (enteredCodeUpper === "ADMIN") {
+                    showScreen('admin-dashboard-screen');
+                } else {
+                    showScreen('role-selection-screen');
+                }
+                 DOM.accessCodeInput.value = ''; 
+            } else {
+                DOM.loginError.textContent = translations[currentLanguage]?.login_error_message_empty || "Veuillez entrer un code.";
+                DOM.loginError.style.display = 'block';
+                DOM.accessCodeInput.focus();
+            }
+        }
+        function collectFormData(form) {
+             const formData = new FormData(form);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                const element = form.elements[key];
+                if (element && element.type === 'radio') {
+                    if (element.checked) data[key] = value;
+                } else if(element && element.type === 'hidden' && key === 'q_student_clarity' && DOM.clarityRatingValueInput.value){
+                    data[key] = DOM.clarityRatingValueInput.value;
+                } else {
+                    data[key] = value;
+                }
+            }
+            if (form.id === 'student-feedback-form' && DOM.clarityRatingValueInput.value && !data['q_student_clarity']) {
+                data['q_student_clarity'] = DOM.clarityRatingValueInput.value;
+            }
+            if (data['q_student_clarity_select_fallback']) { 
+                delete data['q_student_clarity_select_fallback'];
+            }
+            return data;
+        }
+        function handleSubmit(event, role) {
+             event.preventDefault();
+            const form = event.target;
+            let isValid = true;
+            
+            const requiredFields = Array.from(form.querySelectorAll('[required]'));
+            for (let field of requiredFields) {
+                if (field.type === 'radio') {
+                    const radioGroup = form.elements[field.name];
+                    if (!radioGroup.value) {
+                        isValid = false;
+                        break;
+                    }
+                } else if (field.type === 'hidden' && field.name === 'q_student_clarity') {
+                     if (!DOM.clarityRatingValueInput.value) {
+                        isValid = false;
+                        break;
+                    }
+                } else if (!field.value.trim()) {
+                    isValid = false;
+                    break;
+                }
+            }
+
+            if (!isValid) {
+                alert(translations[currentLanguage]?.fill_all_required_fields || "Veuillez remplir tous les champs obligatoires.");
+                if(form.reportValidity) form.reportValidity();
+                return;
+            }
+
+            const answers = collectFormData(form);
+            const currentPeriod = "T2-2024";
+
+            const feedbackData = {
+                feedback_id: 'fid_' + Date.now() + Math.random().toString(36).substring(2,7),
+                timestamp: new Date().toISOString(),
+                period: currentPeriod,
+                establishment_id: "ETAB_A",
+                access_token_hash: "hashed_" + currentAccessCode,
+                language: currentLanguage,
+                role: role,
+                school_level: role === 'student' ? answers.student_level : answers.parent_level,
+                subject: role === 'student' ? answers.student_subject : answers.parent_subject,
+                answers: {}
+            };
+            for (const key in answers) {
+                if (!['student_level', 'parent_level', 'student_subject', 'parent_subject'].includes(key)) {
+                    feedbackData.answers[key] = answers[key];
+                }
+            }
+            allFeedbacks.push(feedbackData);
+            console.log("Feedback Submitted:", JSON.stringify(feedbackData, null, 2));
+
+            form.reset();
+            if (DOM.clarityRatingValueInput) DOM.clarityRatingValueInput.value = '';
+            if (DOM.clarityRatingDiv) DOM.clarityRatingDiv.querySelectorAll('span').forEach(span => span.classList.remove('selected'));
+            if (DOM.clarityRatingSelectFallback) DOM.clarityRatingSelectFallback.value = '';
+
+            showScreen('thank-you-screen');
+        }
+        function resetToRoleSelection() {
+            selectedRole = null;
+            currentAccessCode = null;
+            showScreen('login-screen');
+        }
+
+        function getFilteredFeedbacks() {
+             const period = DOM.filterPeriod.value;
+            const level = DOM.filterLevel.value;
+            const subject = DOM.filterSubject.value;
+            const role = DOM.filterRole.value;
+
+            return allFeedbacks.filter(fb => {
+                const periodMatch = (period === 'all') || (fb.period === period);
+                const levelMatch = (level === 'all') ||
+                                   (level === 'Primaire' && fb.school_level?.startsWith('Primaire')) ||
+                                   (level === 'College' && fb.school_level?.startsWith('College')) ||
+                                   (fb.school_level === level);
+                const subjectMatch = (subject === 'all') ||
+                                     (subject === 'General' && (fb.subject === 'General' || fb.subject === 'L\'établissement en général')) || 
+                                     (fb.subject === subject);
+                const roleMatch = (role === 'all') || (fb.role === role);
+                return periodMatch && levelMatch && subjectMatch && roleMatch;
+            });
+        }
+        function calculateKPIs(filteredData) {
+            DOM.kpiTotalResponses.textContent = filteredData.length;
+
+            const studentClarityScores = filteredData
+                .filter(fb => fb.role === 'student' && fb.answers.q_student_clarity)
+                .map(fb => parseInt(fb.answers.q_student_clarity));
+            DOM.kpiAvgClarityStudent.textContent = studentClarityScores.length > 0
+                ? (studentClarityScores.reduce((a, b) => a + b, 0) / studentClarityScores.length).toFixed(1)
+                : 'N/A';
+
+            const parentCommScores = filteredData
+                .filter(fb => fb.role === 'parent' && fb.answers.q_parent_communication)
+                .map(fb => parseInt(fb.answers.q_parent_communication));
+            DOM.kpiAvgCommParent.textContent = parentCommScores.length > 0
+                ? (parentCommScores.reduce((a, b) => a + b, 0) / parentCommScores.length).toFixed(1)
+                : 'N/A';
+
+            const totalPossibleParticipants = 100; 
+            const participation = filteredData.length > 0 ? ((filteredData.length / totalPossibleParticipants) * 100) : 0;
+            DOM.kpiParticipationRate.textContent = participation > 0 ? `${participation.toFixed(0)}%` : 'N/A';
+        }
+        function destroyChart(chartId) {
+            if (charts[chartId]) { charts[chartId].destroy(); delete charts[chartId]; }
+        }
+        
+        function renderChart(chartId, chartConfig, dataArray) {
+            if (typeof Chart === 'undefined') {
+                console.error("Chart.js n'est pas chargé. Impossible de rendre les graphiques.");
+                const canvas = document.getElementById(chartId);
+                if (canvas && canvas.parentElement) {
+                    const noDataEl = canvas.parentElement.querySelector('.no-data') || document.createElement('div');
+                    if(!noDataEl.classList.contains('no-data')) noDataEl.classList.add('no-data');
+                    noDataEl.textContent = "Erreur: Librairie de graphiques non chargée.";
+                    noDataEl.style.display = 'block';
+                    if (canvas.parentElement && !canvas.parentElement.contains(noDataEl)) {
+                        canvas.parentElement.appendChild(noDataEl);
+                    }
+                    canvas.style.display = 'none';
+                }
+                return;
+            }
+
+            destroyChart(chartId);
+            const canvas = document.getElementById(chartId);
+            if (!canvas) { console.error(`Canvas with id ${chartId} not found.`); return; }
+            const ctx = canvas.getContext('2d');
+
+            const noDataEl = canvas.parentElement.querySelector('.no-data');
+            if (noDataEl) noDataEl.style.display = 'none';
+            canvas.style.display = 'block';
+
+            const isEmptyData = !dataArray || dataArray.length === 0 ||
+                               (chartConfig.data.datasets && chartConfig.data.datasets.every(ds => !ds.data || ds.data.every(d => d === 0 || d === null || isNaN(d) || (Array.isArray(d) && d.length === 0))));
+
+
+            if (isEmptyData) {
+                if (noDataEl) {
+                    noDataEl.textContent = translations[currentLanguage]?.no_data_available || 'No data available.';
+                    noDataEl.style.display = 'block';
+                }
+                canvas.style.display = 'none';
+                return;
+            }
+            
+            const defaultChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false, 
+                layout: {
+                    padding: { top: 10, right:10, bottom: 10, left:10 } 
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 11, family: 'var(--font-family)' },
+                            color: 'var(--text-color)',
+                            boxWidth: 12,
+                            padding: 15,
+                            usePointStyle: true, 
+                        },
+                        title: {
+                            display: false,
+                            text: 'Légende',
+                            padding: { top: 0, bottom: 5 }
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleFont: { size: 13, family: 'var(--font-family)', weight: '600' },
+                        bodyFont: { size: 12, family: 'var(--font-family)' },
+                        padding: 10,
+                        cornerRadius: 4,
+                        displayColors: true, 
+                        borderColor: 'rgba(255,255,255,0.2)',
+                        borderWidth: 1,
+                        callbacks: { 
+                            label: function(context) {
+                                let label = context.dataset.label || context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null && !isNaN(context.parsed.y)) {
+                                    label += context.parsed.y;
+                                } else if (context.parsed !== null && !isNaN(context.parsed)) {
+                                     label += context.parsed;
+                                }
+                                if (context.chart.config.type === 'pie' || context.chart.config.type === 'doughnut') {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(1) + '%' : '0%';
+                                    label += ` (${percentage})`;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 600, 
+                    easing: 'easeOutQuart'
+                },
+                scales: { 
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { font: {size: 10, family: 'var(--font-family)'}, color: '#666' }
+                    },
+                    y: {
+                        grid: { color: '#e0e0e0', drawBorder: false },
+                        ticks: { font: {size: 10, family: 'var(--font-family)'}, color: '#666', beginAtZero: true }
+                    }
+                }
+            };
+            
+            const mergedOptions = { ...defaultChartOptions };
+            if (chartConfig.options) {
+                Object.keys(chartConfig.options).forEach(key => {
+                    if (key === 'plugins' || key === 'scales') {
+                        mergedOptions[key] = { ...defaultChartOptions[key], ...chartConfig.options[key] };
+                        if (key === 'plugins') {
+                            if (chartConfig.options.plugins.legend) {
+                                mergedOptions.plugins.legend = { ...defaultChartOptions.plugins.legend, ...chartConfig.options.plugins.legend };
+                            }
+                             if (chartConfig.options.plugins.tooltip) {
+                                mergedOptions.plugins.tooltip = { ...defaultChartOptions.plugins.tooltip, ...chartConfig.options.plugins.tooltip };
+                                if (chartConfig.options.plugins.tooltip.callbacks) {
+                                     mergedOptions.plugins.tooltip.callbacks = { ...defaultChartOptions.plugins.tooltip.callbacks, ...chartConfig.options.plugins.tooltip.callbacks };
+                                }
+                            }
+                        }
+                         if (key === 'scales') {
+                            if (chartConfig.options.scales.x) mergedOptions.scales.x = { ...defaultChartOptions.scales.x, ...chartConfig.options.scales.x };
+                            if (chartConfig.options.scales.y) mergedOptions.scales.y = { ...defaultChartOptions.scales.y, ...chartConfig.options.scales.y };
+                        }
+                    } else {
+                        mergedOptions[key] = chartConfig.options[key];
+                    }
+                });
+            }
+            
+            const finalConfig = { type: chartConfig.type, data: chartConfig.data, options: mergedOptions };
+            charts[chartId] = new Chart(ctx, finalConfig);
+        }
+
+        function renderAvgScoresChart(filteredData) {
+            const studentData = filteredData.filter(fb => fb.role === 'student');
+            const parentData = filteredData.filter(fb => fb.role === 'parent');
+
+            const questionConfigs = [
+                { key: 'q_student_clarity', label_key: 'q_student_clarity', dataSet: studentData, color: chartColors.blue },
+                { key: 'q_student_atmosphere', label_key: 'q_student_atmosphere', dataSet: studentData, color: chartColors.green },
+                { key: 'q_parent_communication', label_key: 'q_parent_communication', dataSet: parentData, color: chartColors.orange },
+            ];
+
+            const labels = questionConfigs.map(qc => (translations[currentLanguage]?.[qc.label_key] || qc.label_key).substring(0,25)+(qc.label_key.length > 25 ? '...' : ''));
+            const avgScores = questionConfigs.map(qc => {
+                const scores = qc.dataSet.map(fb => parseInt(fb.answers[qc.key])).filter(s => !isNaN(s));
+                return scores.length ? (scores.reduce((a,b) => a+b,0) / scores.length).toFixed(1) : 0; 
+            });
+
+            renderChart('chart-avg-scores', {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: translations[currentLanguage]?.chart_avg_scores_title || 'Moyennes',
+                        data: avgScores,
+                        backgroundColor: questionConfigs.map(qc => qc.color),
+                        borderColor: questionConfigs.map(qc => qc.color.replace('0.8', '1')), 
+                        borderWidth: 1,
+                        borderRadius: 3,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', 
+                    scales: { x: { max: 5, ticks: { stepSize: 1 } } },
+                    plugins: { legend: { display: false } }
+                }
+            }, questionConfigs.flatMap(qc => qc.dataSet)); 
+        }
+
+        function renderRoleDistributionChart(filteredData) {
+            const rolesCount = filteredData.reduce((acc, fb) => { acc[fb.role] = (acc[fb.role] || 0) + 1; return acc; }, {});
+            const dataValues = Object.values(rolesCount);
+            const dataLabels = Object.keys(rolesCount).map(role => translations[currentLanguage][`role_${role}_filter`] || role.charAt(0).toUpperCase() + role.slice(1));
+
+            renderChart('chart-role-distribution', {
+                type: 'doughnut', 
+                data: {
+                    labels: dataLabels,
+                    datasets: [{
+                        label: 'Répartition',
+                        data: dataValues,
+                        backgroundColor: [chartColors.teal, chartColors.pink, chartColors.yellow].slice(0, dataValues.length),
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                        hoverOffset: 8 
+                    }]
+                },
+                options: {
+                    cutout: '60%', 
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            }, filteredData);
+        }
+
+        function renderStudentEncouragementChart(filteredData) {
+            const studentData = filteredData.filter(fb => fb.role === 'student');
+            const encouragementCounts = studentData.reduce((acc, fb) => {
+                const answer = fb.answers.q_student_encouragement;
+                if (answer) acc[answer] = (acc[answer] || 0) + 1;
+                return acc;
+            }, {});
+             const dataValues = Object.values(encouragementCounts);
+             const dataLabels = Object.keys(encouragementCounts).map(key => translations[currentLanguage]?.[key] || key);
+
+            renderChart('chart-student-encouragement', {
+                type: 'pie', 
+                data: {
+                    labels: dataLabels,
+                    datasets: [{
+                        label: 'Encouragement',
+                        data: dataValues,
+                        backgroundColor: [chartColors.green, chartColors.yellow, chartColors.red].slice(0, dataValues.length),
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                     plugins: { legend: { position: 'bottom' } }
+                }
+            }, studentData);
+        }
+
+        function renderParentMotivationChart(filteredData) {
+            const parentData = filteredData.filter(fb => fb.role === 'parent');
+            const motivationCounts = parentData.reduce((acc, fb) => {
+                const answer = fb.answers.q_parent_motivation;
+                if (answer) acc[answer] = (acc[answer] || 0) + 1;
+                return acc;
+            }, {});
+            const dataLabels = Object.keys(motivationCounts).map(key => {
+                const translationKey = `motivation_${key}`;
+                return translations[currentLanguage]?.[translationKey] || key;
+            });
+
+            renderChart('chart-parent-motivation', {
+                type: 'bar',
+                data: {
+                    labels: dataLabels,
+                    datasets: [{
+                        label: translations[currentLanguage]?.q_parent_motivation || 'Motivation',
+                        data: Object.values(motivationCounts),
+                        backgroundColor: chartColors.purple,
+                        borderColor: chartColors.purple.replace('0.8', '1'),
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        barPercentage: 0.6, 
+                        categoryPercentage: 0.7
+                    }]
+                },
+                options: {
+                    scales: { y: { ticks: { stepSize: 1 } } },
+                    plugins: { legend: { display: false } }
+                }
+            }, parentData);
+        }
+
+        function renderStudentClarityDistributionChart(filteredData) {
+            const studentData = filteredData.filter(fb => fb.role === 'student' && fb.answers.q_student_clarity);
+            const clarityScores = [0, 0, 0, 0, 0]; 
+
+            studentData.forEach(fb => {
+                const score = parseInt(fb.answers.q_student_clarity);
+                if (score >= 1 && score <= 5) {
+                    clarityScores[score - 1]++;
+                }
+            });
+
+            const ratingLabels = [
+                `1 (${(translations[currentLanguage]?.rating_1_text || "Pas du tout").substring(0,15)})`,
+                `2 (${(translations[currentLanguage]?.rating_2_text || "Un peu").substring(0,15)})`,
+                `3 (${(translations[currentLanguage]?.rating_3_text || "Moyennement").substring(0,15)})`,
+                `4 (${(translations[currentLanguage]?.rating_4_text || "Bien").substring(0,15)})`,
+                `5 (${(translations[currentLanguage]?.rating_5_text || "Très bien").substring(0,15)})`,
+            ];
+
+
+            renderChart('chart-student-clarity-distribution', {
+                type: 'bar',
+                data: {
+                    labels: ratingLabels,
+                    datasets: [{
+                        label: translations[currentLanguage]?.q_student_clarity || 'Notes Clarté',
+                        data: clarityScores,
+                        backgroundColor: chartColorPalette.slice(0,5), 
+                        borderColor: chartColorPalette.slice(0,5).map(color => color.replace('0.8', '1')),
+                        borderWidth: 1,
+                        borderRadius: 3,
+                    }]
+                },
+                options: {
+                    scales: { 
+                        y: { ticks: { stepSize: Math.max(1, Math.ceil(Math.max(...clarityScores, 1) / 5) ) } } // Ensure stepSize is at least 1
+                    }, 
+                    plugins: { legend: { display: false } }
+                }
+            }, studentData);
+        }
+        
+        function renderQualitativeData(filteredData) {
+            DOM.wordCloudList.innerHTML = '';
+            const allOpenAnswers = filteredData.map(fb => fb.answers.q_student_open || fb.answers.q_parent_open || '').join(' ');
+
+            if (allOpenAnswers.trim()) {
+                DOM.noWordcloudData.style.display = 'none';
+                const commonFrStopWords = ['le','la','les','de','des','du','un','une','et','est','pour','pas','plus','avec','tout','aux','sont','que','qui','dans','il','elle','on','ne','ce','se','mon','ma','mes','ton','ta','tes','son','sa','ses','notre','nos','votre','vos','leur','leurs','je','tu','nous','vous','ils','elles','moi','toi','lui','eux','très','bien','bon','faire','comme','aussi','cette','devrait','pourrait','suis','chose','merci','aime','serait','peut','beaucoup','vraiment','prof','professeur','maitre','maitresse','cours','eleve','classe','ecole','y','a','ceci','cela','auxquels','auxquelles','cet','ces','dont','etc','étaient','étais','était','étant','étiez','étions','eûmes','eût','eûtes','fûmes','fût','fûtes',' furent','fussent','fussiez','fussions','même','mêmes','ni','où','quel','quelle','quelles','quels','sans','soi','soient','sois','soit','sommes','sous','soyez','soyons','tandis','tellement','tels','tes','toi','ton','tous','trop','vos','votre','étais','sujet','appréciation','suggestion','commentaire'];
+                const commonEnStopWords = ['the','a','an','is','are','and','for','not','more','with','all','to','of','in','it','he','she','we','you','they','my','your','his','her','our','their','i','me','him','her','us','them','very','good','do','make','like','also','this','should','could','am','thing','thanks','love','would','can','lot','really','teacher','course','student','class','school','comment','suggestion','appreciation'];
+                const commonArStopWords = ['في', 'من', 'الى', 'على', 'عن', 'هو', 'هي', 'هم', 'هن', 'انا', 'انت', 'انتم', 'نحن', 'كان', 'يكون', 'جدا', 'جيد', 'هذا', 'هذه', 'ذلك', 'الذي', 'التي', 'كل', 'بعض', 'معلم', 'مدرس', 'صف', 'مدرسة', 'شكرا', 'جيد', 'ممتاز', 'جدا', 'تعليق', 'اقتراح', 'تقدير'];
+
+                let stopWords;
+                if (currentLanguage === 'fr') stopWords = new Set(commonFrStopWords);
+                else if (currentLanguage === 'en') stopWords = new Set(commonEnStopWords);
+                else if (currentLanguage === 'ar') stopWords = new Set(commonArStopWords);
+                else stopWords = new Set();
+
+                const words = allOpenAnswers.toLowerCase().match(currentLanguage === 'ar' ? /[\u0600-\u06FF]{3,}/g : /\b(\w{3,})\b/g) || [];
+                const wordCounts = words.reduce((acc, word) => { if (!stopWords.has(word) && isNaN(word)) acc[word] = (acc[word] || 0) + 1; return acc; }, {});
+                const sortedWords = Object.entries(wordCounts).sort((a,b) => b[1] - a[1]).slice(0, 30); 
+                sortedWords.forEach(([word, count]) => {
+                    const li = document.createElement('li');
+                    const fontSize = Math.max(0.8, Math.min(1.5, 0.7 + count * 0.05)) + 'em';
+                    li.style.fontSize = fontSize;
+                    li.textContent = `${word}`; 
+                    DOM.wordCloudList.appendChild(li);
+                });
+                if(sortedWords.length === 0) DOM.noWordcloudData.style.display = 'block';
+            } else { DOM.noWordcloudData.style.display = 'block'; }
+
+            DOM.commentsListDiv.innerHTML = '';
+            const comments = filteredData.map(fb => {
+                const studentComment = fb.answers.q_student_open || "";
+                const parentComment = fb.answers.q_parent_open || "";
+                let fullComment = (studentComment + " " + parentComment).trim();
+                if (fullComment) {
+                    return {
+                        role: fb.role,
+                        level: fb.school_level,
+                        subject: fb.subject,
+                        text: fullComment,
+                        lang: fb.language
+                    };
+                }
+                return null;
+            }).filter(comment => comment !== null);
+
+            if (comments.length > 0) {
+                DOM.noCommentsData.style.display = 'none';
+                comments.slice(0, 10).forEach(comment => { 
+                    const div = document.createElement('div');
+                    div.classList.add('comment-item');
+                    const sanitizedComment = comment.text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    const roleText = translations[comment.lang]?.[`role_${comment.role}_filter`] || comment.role;
+                    const levelText = comment.level;
+                    let subjectKey = `subject_${comment.subject.toLowerCase().replace(/\s+/g, '')}`; 
+                    if (comment.role === 'parent' && (comment.subject === 'General' || comment.subject === "L'établissement en général")) subjectKey = 'subject_general_teacher';
+
+                    const subjectText = translations[comment.lang]?.[subjectKey] || comment.subject;
+
+                    div.innerHTML = `<p style="margin-bottom: 5px; direction: ${comment.lang === 'ar' ? 'rtl' : 'ltr'}; text-align: ${comment.lang === 'ar' ? 'right' : 'left'};">“${sanitizedComment}”</p>
+                                     <small style="color: #777; font-size:0.8em; display:block; text-align: ${comment.lang === 'ar' ? 'right' : 'left'};">
+                                        <em>${roleText} (${levelText}) - ${subjectText}</em>
+                                     </small>`;
+                    DOM.commentsListDiv.appendChild(div);
+                });
+            } else { DOM.noCommentsData.style.display = 'block'; }
+        }
+        function renderAdminDashboard() {
+            const filteredData = getFilteredFeedbacks();
+            calculateKPIs(filteredData);
+            updateVisibleKPIs();
+            renderAvgScoresChart(filteredData);
+            renderRoleDistributionChart(filteredData);
+            renderStudentEncouragementChart(filteredData);
+            renderParentMotivationChart(filteredData);
+            renderStudentClarityDistributionChart(filteredData); 
+            renderQualitativeData(filteredData);
+
+             const placeholderCanvas = document.getElementById('chart-placeholder');
+             if (placeholderCanvas) {
+                 const placeholderNoData = placeholderCanvas.parentElement.querySelector('.no-data');
+                 placeholderCanvas.style.display = 'none';
+                 if (placeholderNoData) placeholderNoData.style.display = 'block';
+             }
+        }
+
+        function showAdminTab(tabId) {
+            DOM.adminTabContents.forEach(content => content.classList.remove('active'));
+            DOM.adminTabButtons.forEach(button => button.classList.remove('active'));
+
+            const activeContent = document.getElementById(tabId);
+            if (activeContent) activeContent.classList.add('active');
+
+            const activeButton = document.querySelector(`.admin-tab-button[onclick="showAdminTab('${tabId}')"]`);
+            if (activeButton) activeButton.classList.add('active');
+
+            if (tabId === 'data-visualization') renderAdminDashboard();
+            else if (tabId === 'survey-management') renderAdminQuestionLists();
+            else if (tabId === 'pedagogical-structure') renderPedagogicalStructureTab();
+            else if (tabId === 'config-management') renderConfigManagementTab();
+            updateUIForLanguage(); 
+        }
+
+        function renderAdminQuestionLists() {
+            DOM.studentQuestionListAdmin.innerHTML = '';
+            surveyQuestions.student.forEach(q => {
+                const li = document.createElement('li');
+                const questionText = translations[currentLanguage]?.[q.text_key] || q.text_key;
+                const typeText = translations[currentLanguage]?.question_type_label || "Type";
+                const editText = translations[currentLanguage]?.edit_btn_label || "Edit";
+                const deleteText = translations[currentLanguage]?.delete_btn_label || "Delete";
+                const editAlert = translations[currentLanguage]?.edit_not_implemented || "Edit not implemented.";
+                const deleteAlert = translations[currentLanguage]?.delete_not_implemented || "Delete not implemented.";
+
+                li.innerHTML = `<div class="item-text">${questionText} <span class="item-details">${typeText}: ${q.type}</span></div>
+                                <div style="white-space:nowrap;">
+                                  <button class="tiny-btn" onclick="alert('${editAlert}')">${editText}</button>
+                                  <button class="tiny-btn error" onclick="alert('${deleteAlert}')">${deleteText}</button>
+                                </div>`;
+                DOM.studentQuestionListAdmin.appendChild(li);
+            });
+
+            DOM.parentQuestionListAdmin.innerHTML = '';
+            surveyQuestions.parent.forEach(q => {
+                const li = document.createElement('li');
+                const questionText = translations[currentLanguage]?.[q.text_key] || q.text_key;
+                const typeText = translations[currentLanguage]?.question_type_label || "Type";
+                const editText = translations[currentLanguage]?.edit_btn_label || "Edit";
+                const deleteText = translations[currentLanguage]?.delete_btn_label || "Delete";
+                const editAlert = translations[currentLanguage]?.edit_not_implemented || "Edit not implemented.";
+                const deleteAlert = translations[currentLanguage]?.delete_not_implemented || "Delete not implemented.";
+                li.innerHTML = `<div class="item-text">${questionText} <span class="item-details">${typeText}: ${q.type}</span></div>
+                                <div style="white-space:nowrap;">
+                                  <button class="tiny-btn" onclick="alert('${editAlert}')">${editText}</button>
+                                  <button class="tiny-btn error" onclick="alert('${deleteAlert}')">${deleteText}</button>
+                                </div>`;
+                DOM.parentQuestionListAdmin.appendChild(li);
+            });
+        }
+
+        function renderConfigManagementTab() {
+            renderKPISelection();
+            renderCustomKPIList(); 
+        }
+
+        function renderKPISelection() {
+            DOM.kpiSelectionAdminDiv.innerHTML = '';
+            availableKPIs.forEach(kpi => {
+                const div = document.createElement('div');
+                div.classList.add('kpi-choice');
+                const checkboxId = `kpi-toggle-${kpi.id}`;
+                const labelText = translations[currentLanguage]?.[kpi.text_key] || kpi.text_key;
+                div.innerHTML = `
+                    <input type="checkbox" id="${checkboxId}" data-kpi-id="${kpi.id}" ${visibleKPIs.has(kpi.id) ? 'checked' : ''}>
+                    <label for="${checkboxId}">${labelText}</label>
+                `;
+                DOM.kpiSelectionAdminDiv.appendChild(div);
+
+                document.getElementById(checkboxId).addEventListener('change', (event) => {
+                    if (event.target.checked) visibleKPIs.add(kpi.id);
+                    else visibleKPIs.delete(kpi.id);
+                    updateVisibleKPIs();
+                });
+            });
+        }
+        function updateVisibleKPIs() {
+            document.querySelectorAll('.kpi-card').forEach(card => {
+                card.style.display = visibleKPIs.has(card.dataset.kpi) ? 'block' : 'none';
+            });
+        }
+        function addSimulatedPeriod() {
+            const periodName = DOM.newPeriodNameInput.value.trim();
+            const currentLang = currentLanguage;
+            if (periodName) {
+                const newOptionValue = periodName.toLowerCase().replace(/\s+/g, '-');
+                if (Array.from(DOM.filterPeriod.options).some(opt => opt.value === newOptionValue)) {
+                    alert(translations[currentLang]?.period_exists_error || "This period already exists."); return;
+                }
+                const newOption = document.createElement('option');
+                newOption.value = newOptionValue; newOption.textContent = periodName;
+                DOM.filterPeriod.appendChild(newOption); DOM.filterPeriod.value = newOption.value;
+                DOM.newPeriodNameInput.value = '';
+                alert(`${translations[currentLang]?.period_added_success_prefix || "Period"} "${periodName}" ${translations[currentLang]?.period_added_success_suffix || "added (simulation)."}`);
+                if (currentScreen === 'admin-dashboard-screen' && document.getElementById('data-visualization').classList.contains('active')) {
+                    renderAdminDashboard();
+                }
+            } else {
+                alert(translations[currentLang]?.enter_period_name_error || "Please enter a name for the period.");
+            }
+        }
+
+        function renderPedagogicalStructureTab() {
+            renderTrainingOptionsList();
+            populateTrainingOptionSelect();
+            DOM.subjectsForOptionContainer.style.display = 'none';
+            DOM.newSubjectNameForOptionInput.value = ''; 
+            DOM.selectTrainingOptionForSubject.value = ''; 
+        }
+
+        function renderTrainingOptionsList() {
+            DOM.trainingOptionsList.innerHTML = '';
+            if (mockTrainingOptions.length === 0) {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="item-text" style="text-align:center; font-style:italic;">${translations[currentLanguage]?.no_training_options_defined || "Aucune filière définie."}</span>`;
+                DOM.trainingOptionsList.appendChild(li);
+                return;
+            }
+            mockTrainingOptions.forEach(option => {
+                const li = document.createElement('li');
+                const deleteText = translations[currentLanguage]?.delete_btn_label || "Suppr.";
+                li.innerHTML = `<span class="item-text">${option.name}</span>
+                                <button class="tiny-btn error" onclick="deleteTrainingOption('${option.id}')">${deleteText}</button>`;
+                DOM.trainingOptionsList.appendChild(li);
+            });
+        }
+
+        function populateTrainingOptionSelect() {
+            DOM.selectTrainingOptionForSubject.innerHTML = `<option value="" data-translate="select_option_to_manage">${translations[currentLanguage]?.select_option_to_manage || '-- Gérer matières --'}</option>`;
+            mockTrainingOptions.forEach(option => {
+                const optElement = document.createElement('option');
+                optElement.value = option.id;
+                optElement.textContent = option.name;
+                DOM.selectTrainingOptionForSubject.appendChild(optElement);
+            });
+        }
+
+        function addTrainingOption() {
+            const name = DOM.newTrainingOptionNameInput.value.trim();
+            if (name) {
+                if (mockTrainingOptions.some(opt => opt.name.toLowerCase() === name.toLowerCase())) {
+                    alert(translations[currentLanguage]?.training_option_exists_error || "Cette filière existe déjà.");
+                    return;
+                }
+                const newId = 'opt_' + Date.now();
+                mockTrainingOptions.push({ id: newId, name: name, subjects: [] });
+                DOM.newTrainingOptionNameInput.value = '';
+                renderTrainingOptionsList();
+                populateTrainingOptionSelect();
+            } else {
+                alert(translations[currentLanguage]?.enter_training_option_name_error || "Veuillez entrer un nom pour la filière.");
+            }
+        }
+        window.deleteTrainingOption = function(optionId) {
+            mockTrainingOptions = mockTrainingOptions.filter(opt => opt.id !== optionId);
+            renderTrainingOptionsList();
+            populateTrainingOptionSelect();
+            DOM.subjectsForOptionContainer.style.display = 'none';
+        }
+
+        function displaySubjectsForSelectedOption() {
+            const selectedOptionId = DOM.selectTrainingOptionForSubject.value;
+            DOM.subjectsListForOption.innerHTML = '';
+            DOM.newSubjectNameForOptionInput.value = ''; 
+
+            if (!selectedOptionId) {
+                DOM.subjectsForOptionContainer.style.display = 'none';
+                return;
+            }
+            const selectedOption = mockTrainingOptions.find(opt => opt.id === selectedOptionId);
+            if (selectedOption) {
+                DOM.subjectsForOptionTitle.textContent = `${translations[currentLanguage]?.subjects_for_option_prefix || 'Matières pour'} : ${selectedOption.name}`;
+                if (selectedOption.subjects.length === 0) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="item-text" style="text-align:center; font-style:italic;">${translations[currentLanguage]?.no_subjects_for_option || "Aucune matière pour cette filière."}</span>`;
+                    DOM.subjectsListForOption.appendChild(li);
+                } else {
+                    selectedOption.subjects.forEach(subjectName => {
+                        const li = document.createElement('li');
+                         const deleteText = translations[currentLanguage]?.delete_btn_label || "Suppr.";
+                        li.innerHTML = `<span class="item-text">${subjectName}</span> 
+                                        <button class="tiny-btn error" onclick="deleteSubjectFromOption('${selectedOptionId}', '${subjectName}')">${deleteText}</button>`;
+                        DOM.subjectsListForOption.appendChild(li);
+                    });
+                }
+                DOM.subjectsForOptionContainer.style.display = 'block';
+            } else {
+                DOM.subjectsForOptionContainer.style.display = 'none';
+            }
+        }
+
+        function addSubjectToSelectedOption() {
+            const selectedOptionId = DOM.selectTrainingOptionForSubject.value;
+            const subjectName = DOM.newSubjectNameForOptionInput.value.trim();
+
+            if (!selectedOptionId) {
+                alert(translations[currentLanguage]?.select_training_option_first_error || "Veuillez d'abord sélectionner une filière.");
+                return;
+            }
+            if (!subjectName) {
+                alert(translations[currentLanguage]?.enter_subject_name_error || "Veuillez entrer un nom pour la matière.");
+                return;
+            }
+
+            const selectedOption = mockTrainingOptions.find(opt => opt.id === selectedOptionId);
+            if (selectedOption) {
+                if (selectedOption.subjects.some(subj => subj.toLowerCase() === subjectName.toLowerCase())) {
+                     alert(translations[currentLanguage]?.subject_exists_in_option_error || "Cette matière existe déjà dans cette filière.");
+                     return;
+                }
+                selectedOption.subjects.push(subjectName);
+                DOM.newSubjectNameForOptionInput.value = '';
+                displaySubjectsForSelectedOption();
+            }
+        }
+        window.deleteSubjectFromOption = function(optionId, subjectName) {
+            const option = mockTrainingOptions.find(opt => opt.id === optionId);
+            if (option) {
+                option.subjects = option.subjects.filter(subj => subj !== subjectName);
+                displaySubjectsForSelectedOption();
+            }
+        }
+
+        function renderCustomKPIList() {
+            DOM.customKPIList.innerHTML = '';
+             if (mockCustomKPIs.length === 0) {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="item-text" style="text-align:center; font-style:italic;">${translations[currentLanguage]?.no_custom_kpis_defined || "Aucun indicateur personnalisé."}</span>`;
+                DOM.customKPIList.appendChild(li);
+                return;
+            }
+            mockCustomKPIs.forEach(kpi => {
+                const li = document.createElement('li');
+                const deleteText = translations[currentLanguage]?.delete_btn_label || "Suppr.";
+                li.innerHTML = `<div class="item-text">${kpi.name} <span class="item-details">${kpi.description || ''}</span></div>
+                                <button class="tiny-btn error" onclick="deleteCustomKPI('${kpi.id}')">${deleteText}</button>`;
+                DOM.customKPIList.appendChild(li);
+            });
+        }
+        function addCustomKPI() {
+            const name = DOM.newCustomKPINameInput.value.trim();
+            const description = DOM.newCustomKPIDescInput.value.trim();
+            if (name) {
+                 if (mockCustomKPIs.some(kpi => kpi.name.toLowerCase() === name.toLowerCase())) {
+                    alert(translations[currentLanguage]?.custom_kpi_exists_error || "Cet indicateur personnalisé existe déjà.");
+                    return;
+                }
+                const newId = 'ckpi_' + Date.now();
+                mockCustomKPIs.push({ id: newId, name: name, description: description });
+                DOM.newCustomKPINameInput.value = '';
+                DOM.newCustomKPIDescInput.value = '';
+                renderCustomKPIList();
+            } else {
+                 alert(translations[currentLanguage]?.enter_custom_kpi_name_error || "Veuillez entrer un nom pour l'indicateur.");
+            }
+        }
+        window.deleteCustomKPI = function(kpiId) {
+            mockCustomKPIs = mockCustomKPIs.filter(kpi => kpi.id !== kpiId);
+            renderCustomKPIList();
+        }
+
+        DOM.submitAccessCodeButton.addEventListener('click', handleAccessCode);
+        DOM.accessCodeInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleAccessCode());
+        DOM.selectStudentButton.addEventListener('click', () => { selectedRole = 'student'; showScreen('student-form-screen'); });
+        DOM.selectParentButton.addEventListener('click', () => { selectedRole = 'parent'; showScreen('parent-form-screen'); });
+        DOM.studentForm.addEventListener('submit', (e) => handleSubmit(e, 'student'));
+        DOM.parentForm.addEventListener('submit', (e) => handleSubmit(e, 'parent'));
+        DOM.restartButton.addEventListener('click', resetToRoleSelection);
+        DOM.languageSelect.addEventListener('change', updateUIForLanguage);
+        DOM.adminAccessButton.addEventListener('click', () => {
+            currentAccessCode = "ADMIN_DIRECT_ACCESS"; 
+            showScreen('admin-dashboard-screen');
+        });
+        DOM.backToSurveyButton.addEventListener('click', () => {
+            resetToRoleSelection();
+        });
+        [DOM.filterPeriod, DOM.filterLevel, DOM.filterSubject, DOM.filterRole].forEach(filterEl => {
+            if(filterEl) filterEl.addEventListener('change', () => {
+                 if (currentScreen === 'admin-dashboard-screen' && document.getElementById('data-visualization').classList.contains('active')) {
+                    renderAdminDashboard();
+                 }
+            });
+        });
+        if (DOM.addPeriodButton) DOM.addPeriodButton.addEventListener('click', addSimulatedPeriod);
+
+        if (DOM.addTrainingOptionBtn) DOM.addTrainingOptionBtn.addEventListener('click', addTrainingOption);
+        if (DOM.selectTrainingOptionForSubject) DOM.selectTrainingOptionForSubject.addEventListener('change', displaySubjectsForSelectedOption);
+        if (DOM.addSubjectToOptionBtn) DOM.addSubjectToOptionBtn.addEventListener('click', addSubjectToSelectedOption);
+        if (DOM.addCustomKPIBtn) DOM.addCustomKPIBtn.addEventListener('click', addCustomKPI);
+
+        if (DOM.clarityRatingDiv) {
+            DOM.clarityRatingDiv.addEventListener('click', (e) => {
+                if (e.target.tagName === 'SPAN' && e.target.dataset.value) {
+                    const value = e.target.dataset.value;
+                    DOM.clarityRatingValueInput.value = value;
+                    DOM.clarityRatingDiv.querySelectorAll('span').forEach(span => span.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    if (DOM.clarityRatingSelectFallback) DOM.clarityRatingSelectFallback.value = value;
+                }
+            });
+            if (DOM.clarityRatingSelectFallback) DOM.clarityRatingSelectFallback.style.display = 'none';
+             DOM.clarityRatingDiv.style.display = 'flex'; 
+        } else if (DOM.clarityRatingSelectFallback) {
+            DOM.clarityRatingSelectFallback.style.display = 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                document.querySelectorAll('[data-translate]').forEach(el => {
+                    if (el.hasAttribute('data-placeholder') && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT')) {
+                        el.dataset.defaultText = el.placeholder;
+                    } else {
+                        el.dataset.defaultText = el.textContent;
+                    }
+                });
+                updateUIForLanguage();
+                showScreen('login-screen');
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation:", error);
+                // Afficher un message d'erreur à l'utilisateur si nécessaire
+                const body = document.querySelector('body');
+                if (body) {
+                    body.innerHTML = '<p style="color:red; text-align:center; padding:20px;">Une erreur critique est survenue. Veuillez vérifier la console du navigateur (F12) pour plus de détails ou contacter le support.</p>';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
